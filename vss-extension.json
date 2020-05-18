@@ -19,13 +19,13 @@
     },
     "links": {
         "getstarted": {
-            "uri": "https://github.com/AndrewCopeland/conjur-extension-azure-devops/blob/master/overview.md"
+            "uri": "https://github.com/cyberark/conjur-azure-devops-extension/blob/master/overview.md"
         },
         "issues": {
-            "uri": "https://github.com/AndrewCopeland/conjur-extension-azure-devops/issues"
+            "uri": "https://github.com/cyberark/conjur-azure-devops-extension/issues"
         },
         "repository": {
-            "uri": "https://github.com/AndrewCopeland/conjur-extension-azure-devops"
+            "uri": "https://github.com/cyberark/conjur-azure-devops-extension"
         }
 	},
     "content": {

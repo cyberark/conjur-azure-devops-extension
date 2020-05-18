@@ -13,12 +13,12 @@ Azure DevOps
 
 ## Get the source
 
-The [source](https://github.com/AndrewCopeland/conjur-extension-azure-devops) for this extension is on GitHub. Take, fork, and extend.
+The [source](https://github.com/cyberark/conjur-azure-devops-extension) for this extension is on GitHub. Take, fork, and extend.
 
 ## Contribute
 
-This extension was created by Andrew Copeland.
+This extension was created by [Andrew Copeland](https://github.com/AndrewCopeland).
 
 ## Feedback and issues
 
-If you have feedback or issues file an issue on [GitHub](https://github.com/AndrewCopeland/conjur-extension-azure-devops)
+If you have feedback or issues file an issue on [GitHub](https://github.com/cyberark/conjur-azure-devops-extension)

@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AndrewCopeland/conjur-extension-azure-devops.git"
+    "url": "git+https://github.com/cyberark/conjur-azure-devops-extension.git"
   },
   "keywords": [
     "conjur",
@@ -19,9 +19,9 @@
   "author": "Andrew Copeland",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AndrewCopeland/conjur-extension-azure-devops/issues"
+    "url": "https://github.com/cyberark/conjur-azure-devops-extension/issues"
   },
-  "homepage": "https://github.com/AndrewCopeland/conjur-extension-azure-devops#readme",
+  "homepage": "https://github.com/cyberark/conjur-azure-devops-extension#readme",
   "dependencies": {
     "azure-pipelines-task-lib": "^2.9.3"
   },
