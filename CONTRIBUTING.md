@@ -1,9 +1,7 @@
 # Contributing
 
-[Are you accepting contributions at this time? If not, please state that here.
-No need to include content from the rest of this document.]
-
 For general contribution and community guidelines, please see the [community repo](https://github.com/cyberark/community).
+This extension was created by [Andrew Copeland](https://github.com/AndrewCopeland).
 
 ## Table of Contents
 
@@ -14,18 +12,16 @@ For general contribution and community guidelines, please see the [community rep
 
 ## Development
 
-TODO:
-[What development tools are required to start working on this project?]
+- npm
+- TypeScript(tsc)
 
 ## Testing
 
-TODO:
-[Instructions for running the test suite]
+Testing is done manually
 
 ## Releases
 
-TODO:
-[Instructions for creating a new release]
+Releases are done manually
 
 ## Contributing workflow
 

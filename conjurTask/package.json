@@ -1,0 +1,31 @@
+{
+  "name": "conjurtask",
+  "version": "1.0.0",
+  "description": "Retrieve Secrets from Cyberark Conjur",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyberark/conjur-azure-devops-extension.git"
+  },
+  "keywords": [
+    "conjur",
+    "secret",
+    "cyberark",
+    "vault"
+  ],
+  "author": "Andrew Copeland",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cyberark/conjur-azure-devops-extension/issues"
+  },
+  "homepage": "https://github.com/cyberark/conjur-azure-devops-extension#readme",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^2.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^13.13.0"
+  }
+}
