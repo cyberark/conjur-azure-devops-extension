@@ -57,10 +57,10 @@
         {
             "name": "ignoreSsl",
             "type": "boolean",
-            "label": "Ignore Certs",
+            "label": "Disable SSL certificate verification",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "WARNING: IGNORE UNTRUSTED CERTIFICATES"
+            "helpMarkDown": "WARNING: Disables SSL certificate verification. Enabling this attribue leaves this application suspectible to a MTM attack."
         }
     ],
     "execution": {
