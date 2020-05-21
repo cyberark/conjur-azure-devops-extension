@@ -60,7 +60,7 @@
             "label": "Disable SSL certificate verification",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "WARNING: Disables SSL certificate verification. Enabling this attribue leaves this application suspectible to a MTM attack."
+            "helpMarkDown": "WARNING: Disables SSL certificate verification. Enabling this attribute leaves this application susceptible to a MITM attack."
         }
     ],
     "execution": {
