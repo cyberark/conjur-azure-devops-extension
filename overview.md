@@ -3,7 +3,7 @@
 DO NOT STORE THE CONJUR API KEY IN PLAIN TEXT. Store the conjur api key either in the Azure Key Vault or as a secret variable on the pipeline.
 
 
-![config-task](config-get-conjur-secret.png)
+![config-task](https://github.com/cyberark/conjur-azure-devops-extension/raw/master/config-get-conjur-secret.png)
 
 ## Available tasks
 
