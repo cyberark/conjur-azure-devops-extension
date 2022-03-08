@@ -14,6 +14,22 @@ by CyberArk**. For more detailed information on our certification levels, see [o
 - Conjur Secrets Manager Open Source v1.1+
 - Azure DevOps
 
+## Usage
+
+For the full demonstration repository, please visit [https://github.com/infamousjoeg/azure-devops-demo](https://github.com/infamousjoeg/azure-devops-demo).
+
+### Declaring GetConjurSecret Task
+
+```yaml
+- task: GetConjurSecret@2
+  inputs:
+    conjurApplianceURL: 'https://conjur.example.com'
+    conjurAccount: 'demo'
+    conjurUsername: 'host/cloud/azure/devops/pipeline-demo'
+    conjurAPIKey: $(API_KEY)
+    ignoreSSL: false
+```
+
 ## Development
 
 Please follow this guide to properaly set up this extension:
