@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/cyberark/conjur-azure-devops-extension#readme",
   "dependencies": {
-    "azure-pipelines-task-lib": "^2.9.6"
+    "azure-pipelines-task-lib": "^3.2.0"
   },
   "devDependencies": {
     "@types/node": "^13.13.12",
