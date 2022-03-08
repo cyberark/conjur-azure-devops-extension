@@ -1,6 +1,8 @@
 # Conjur Azure DevOps Extension
 Azure Devops Task Extension for retrieving secrets from the Cyberark Conjur Secrets Manager
 
+[Get it on the Azure Marketplace](https://marketplace.visualstudio.com/items?itemName=InfamousJoeG.cyberark-conjur-secrets)
+
 ## Certification Level
 ![](https://img.shields.io/badge/Certification%20Level-Community-28A745?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
 
