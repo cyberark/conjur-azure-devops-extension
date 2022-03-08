@@ -8,3 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added entire project to official repository [#1](https://github.com/cyberark/conjur-azure-devops-extension/pull/1)
+
+### Security
+- Ran `npm audit fix --force` to resolve shelljs issues 
+  [#2](https://github.com/cyberark/conjur-azure-devops-extension/pull/2)

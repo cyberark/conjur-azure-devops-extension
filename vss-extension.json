@@ -2,15 +2,15 @@
     "manifestVersion": 1,
     "id": "cyberark-conjur-secrets",
     "name": "Cyberark Conjur Secrets",
-    "version": "0.0.15",
-    "publisher": "AndrewCopeland",
+    "version": "0.0.16",
+    "publisher": "InfamousJoeG",
     "public": true,
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
         }
     ],    
-    "description": "Tool for retrieveing secrets from Cyberark Conjur secrets vault",
+    "description": "Tool for retrieving secrets from Cyberark Conjur Secrets Manager",
     "categories": [
         "Azure Pipelines"
     ],
