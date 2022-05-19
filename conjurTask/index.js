@@ -96,6 +96,7 @@ function sendHttpRequest(hostname, endpoint, method, authorization, data, ignore
         });
         req.on('error', function (error) {
             console.error(error);
+            tl.setResult(tl.TaskResult.Failed, error);
         });
         if (data) {
             req.write(data);
