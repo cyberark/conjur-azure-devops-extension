@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "cyberark-conjur-secrets",
     "name": "Cyberark Conjur Secrets",
-    "version": "0.0.16",
+    "version": "0.0.21",
     "publisher": "InfamousJoeG",
     "public": true,
     "targets": [
