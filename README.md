@@ -21,7 +21,7 @@ For the full demonstration repository, please visit [https://github.com/infamous
 ### Declaring GetConjurSecret Task
 
 ```yaml
-- task: GetConjurSecret@2
+- task: GetConjurSecret@1
   inputs:
     conjurApplianceURL: 'https://conjur.example.com'
     conjurAccount: 'demo'
