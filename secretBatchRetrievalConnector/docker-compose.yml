@@ -1,0 +1,14 @@
+version: '3'
+services:
+  client:
+    image: cyberark/conjur-cli:5
+    entrypoint: sleep
+    command: infinity
+    environment:
+      CONJUR_APPLIANCE_URL:
+      CONJUR_ACCOUNT:
+      CONJUR_AUTHN_LOGIN:
+      CONJUR_AUTHN_API_KEY:
+      CONJUR_SSL_CERTIFICATE:
+    volumes:
+      - $PWD/test:/test
