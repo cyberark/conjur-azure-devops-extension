@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var tl = require("azure-pipelines-task-lib/task");
-var https = require("http");
+var https = require("https");
 var fs = require("fs");
 var readline = require('readline');
 // utility functions
@@ -72,7 +72,7 @@ function sendHttpRequest(hostname, endpoint, method, authorization, data, ignore
     return new Promise(function (resolve, reject) {
         var options = {
             hostname: hostname,
-            port: 8080,
+            port: 443,
             path: endpoint,
             method: method,
             headers: {

@@ -1,9 +1,9 @@
 {
-    "id": "6557a6d2-4caf-4247-99ea-5131286a8753",
+    "id": "3093d698-b13f-69cb-bce0-6647eb4eb8be",
     "name": "secretBatchRetrievalConnector",
     "friendlyName": "Get Conjur Secret using Service Connector",
     "description": "Retrieve secrets from Cyberark Conjur Secrets Manager using a Service Connector",
-    "author": "nirupmaverma",
+    "author": "pradeep12",
     "category": "Build",
     "visibility": [
       "Build",

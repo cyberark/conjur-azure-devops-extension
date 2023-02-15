@@ -1,5 +1,5 @@
 import tl = require('azure-pipelines-task-lib/task');
-import https = require('http');
+import https = require('https');
 import * as fs from 'fs';
 const readline = require('readline');
 
@@ -42,7 +42,7 @@ function sendHttpRequest(hostname : string, endpoint : string, method : 'GET' | 
     return new Promise((resolve, reject) => {     
         const options = {
             hostname: hostname,
-            port: 8080,
+            port: 443,
             path: endpoint,
             method: method,
             headers: {

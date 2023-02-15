@@ -1,10 +1,10 @@
 {
     "manifestVersion": 1,
-      "id": "conjur-service-endpoint",
+      "id": "conjur-service-endpoint-batch",
       "version": "0.1.1",
       "name": "Conjur API Key Based Service Connector",
       "description": "A service endpoint to connect to Conjur using API Key",
-      "publisher": "nirupmaverma",
+      "publisher": "pradeep12",
       "icons": {
         "default": "images/icon.png"
       },
@@ -74,10 +74,10 @@
                     "name": "Secrets Path Yml File",
                     "description": "Yml file for the secrets to be retrieved",
                     "inputMode": "passwordbox",
-                    "isConfidential": false,
+                    "isConfidential": true,
                     "default": false,
                     "validation": {
-                      "isRequired": true,
+                      "isRequired": false,
                       "dataType": "string"
                     }
                   },
