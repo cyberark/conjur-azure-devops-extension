@@ -153,15 +153,16 @@ enum AuthnTypes {
 
 async function run() {
     try {
-        // fetch from input
-        var hostname =  tl.getInput('conjurapplianceurl', true);
-        var account  = tl.getInput('conjuraccount', true);
-        var username = tl.getInput('conjurusername', true);
-        var apiKey = tl.getInput('conjurapikey', false);
-        var secretYml = tl.getInput('secretsyml', false);
-        var clientId = tl.getInput('azureclientid', false);
+        //input from service connector
+        var ep = tl.getInput('ConjurService', true);
+        var hostname = tl.getEndpointUrlRequired(ep);
+        var account  = tl.getEndpointAuthorizationParameter(ep, 'conjuraccount', true);
+        var username = tl.getEndpointAuthorizationParameter(ep, 'conjurusername', true);
+        var apiKey = tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true);
         var ignoreSsl: boolean | false = tl.getBoolInput('ignoressl', false);
-
+    
+        var secretYml = tl.getInput('secretsyml', false);
+        var clientId = tl.getInput('azureclientid', false);    
         var authnType = AuthnTypes.ApiKey
 
         // Set defaults

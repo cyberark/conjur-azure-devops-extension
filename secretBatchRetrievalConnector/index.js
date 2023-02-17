@@ -166,13 +166,14 @@ var AuthnTypes;
 })(AuthnTypes || (AuthnTypes = {}));
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var hostname, account, username, apiKey, secretYml, clientId, ignoreSsl, authnType, error_message;
+        var ep, hostname, account, username, apiKey, secretYml, clientId, ignoreSsl, authnType, error_message;
         return __generator(this, function (_a) {
             try {
-                hostname = tl.getInput('conjurapplianceurl', true);
-                account = tl.getInput('conjuraccount', true);
-                username = tl.getInput('conjurusername', true);
-                apiKey = tl.getInput('conjurapikey', false);
+                ep = tl.getInput('ConjurService', true);
+                hostname = tl.getEndpointUrlRequired(ep);
+                account = tl.getEndpointAuthorizationParameter(ep, 'conjuraccount', true);
+                username = tl.getEndpointAuthorizationParameter(ep, 'conjurusername', true);
+                apiKey = tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true);
                 secretYml = tl.getInput('secretsyml', false);
                 clientId = tl.getInput('azureclientid', false);
                 ignoreSsl = tl.getBoolInput('ignoressl', false);
