@@ -115,10 +115,17 @@ function getSecretsPath(hostname, token, ignoreSsl, secretPath) {
     token = getTokenHeader(token);
     return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl);
 }
-function setAzureSecrets(jsonData, secretPaths) {
+function setAzureSecrets(jsonData, secretPaths, hostname, account, token, ignoreSsl) {
     var conjurSecret = JSON.parse(jsonData);
     if ('error' in conjurSecret) {
         console.log(conjurSecret['error']['message']);
+        var _loop_1 = function (ele_1) {
+            getASecret(hostname, account, token, ele_1, ignoreSsl)
+                .then(function (data) { return tl.setVariable(secretPaths[ele_1], data.toString(), true); })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
+        };
+        for (var ele_1 in secretPaths) {
+            _loop_1(ele_1);
+        }
     }
     else {
         for (var key in conjurSecret) {
@@ -128,6 +135,12 @@ function setAzureSecrets(jsonData, secretPaths) {
             console.log("Set conjur secret '" + ele + "' to azure variable '" + secretPaths[ele] + "'");
         }
     }
+}
+function getASecret(hostname, account, token, secretId, ignoreSsl) {
+    secretId = encodeURIComponent(secretId);
+    var endpoint = "/secrets/" + account + "/variable/" + secretId;
+    token = getTokenHeader(token);
+    return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl);
 }
 function batchSecretRetrieval(hostname, account, token, secretYml, ignoreSsl) {
     var secretsPath = [];
@@ -146,7 +159,7 @@ function batchSecretRetrieval(hostname, account, token, secretYml, ignoreSsl) {
             secretsPath.push(account + ":variable:" + encodeURIComponent(key));
         }
         getSecretsPath(hostname, token, ignoreSsl, secretsPath)
-            .then(function (jsonData) { return setAzureSecrets(jsonData.toString(), secret); })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
+            .then(function (jsonData) { return setAzureSecrets(jsonData.toString(), secret, hostname, account, token, ignoreSsl); })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
     });
 }
 function createISecret(line, secret) {
@@ -166,7 +179,7 @@ var AuthnTypes;
 })(AuthnTypes || (AuthnTypes = {}));
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var ep, hostname, account, username, apiKey, secretYml, clientId, ignoreSsl, authnType, error_message;
+        var ep, hostname, account, username, apiKey, ignoreSsl, secretYml, clientId, authnType, error_message;
         return __generator(this, function (_a) {
             try {
                 ep = tl.getInput('ConjurService', true);
@@ -174,9 +187,9 @@ function run() {
                 account = tl.getEndpointAuthorizationParameter(ep, 'conjuraccount', true);
                 username = tl.getEndpointAuthorizationParameter(ep, 'conjurusername', true);
                 apiKey = tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true);
+                ignoreSsl = tl.getBoolInput('ignoressl', false);
                 secretYml = tl.getInput('secretsyml', false);
                 clientId = tl.getInput('azureclientid', false);
-                ignoreSsl = tl.getBoolInput('ignoressl', false);
                 authnType = AuthnTypes.ApiKey;
                 // Set defaults
                 if (!hostname) {

@@ -92,10 +92,16 @@ function getSecretsPath(hostname: string, token : string, ignoreSsl : boolean, s
     return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl)
 }
 
-function setAzureSecrets(jsonData: string, secretPaths: ISecret){
+function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, ignoreSsl : boolean){
     var conjurSecret = JSON.parse(jsonData);
     if ('error' in conjurSecret){
         console.log(conjurSecret['error']['message']);  
+        for (let ele in secretPaths){
+            getASecret(hostname, account, token, ele, ignoreSsl)
+                .then((data) => tl.setVariable(secretPaths[ele], data.toString(), true))
+                .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message)
+            )
+        }
     }
     else{
         for (let key in conjurSecret) {
@@ -105,6 +111,13 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret){
             console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
         }
     }
+}
+
+function getASecret(hostname: string, account : string, token : string, secretId: string, ignoreSsl : boolean){
+    secretId = encodeURIComponent(secretId);
+    var endpoint = `/secrets/${account}/variable/${secretId}`;
+    token = getTokenHeader(token);
+    return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl);
 }
 
 function batchSecretRetrieval(hostname: string, account : string, token : string, secretYml : string, ignoreSsl : boolean){
@@ -125,7 +138,7 @@ function batchSecretRetrieval(hostname: string, account : string, token : string
             secretsPath.push(account + ":variable:" + encodeURIComponent(key));
         }
         getSecretsPath(hostname, token, ignoreSsl, secretsPath)
-        .then((jsonData) => setAzureSecrets(jsonData.toString(), secret))
+        .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, ignoreSsl))
         .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
     });
 }
