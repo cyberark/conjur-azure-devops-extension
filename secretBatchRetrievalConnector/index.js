@@ -118,10 +118,12 @@ function getSecretsPath(hostname, token, ignoreSsl, secretPath) {
 function setAzureSecrets(jsonData, secretPaths, hostname, account, token, ignoreSsl) {
     var conjurSecret = JSON.parse(jsonData);
     if ('error' in conjurSecret) {
-        console.log(conjurSecret['error']['message']);
         var _loop_1 = function (ele_1) {
             getASecret(hostname, account, token, ele_1, ignoreSsl)
-                .then(function (data) { return tl.setVariable(secretPaths[ele_1], data.toString(), true); })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
+                .then(function (data) {
+                tl.setVariable(secretPaths[ele_1], data.toString(), true);
+                console.log("Set conjur secret '" + ele_1 + "' to azure variable '" + secretPaths[ele_1] + "'");
+            })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
         };
         for (var ele_1 in secretPaths) {
             _loop_1(ele_1);
