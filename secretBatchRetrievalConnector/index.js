@@ -186,9 +186,11 @@ function run() {
             try {
                 ep = tl.getInput('ConjurService', true);
                 hostname = tl.getEndpointUrlRequired(ep);
-                account = tl.getEndpointAuthorizationParameter(ep, 'conjuraccount', true);
-                username = tl.getEndpointAuthorizationParameter(ep, 'conjurusername', true);
-                apiKey = tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true);
+                console.log(tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true));
+                console.log(tl.getEndpointDataParameter(ep, 'conjurapikey', true));
+                account = tl.getEndpointDataParameter(ep, 'conjuraccount', true);
+                username = tl.getEndpointDataParameter(ep, 'conjurusername', true);
+                apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', true);
                 ignoreSsl = tl.getBoolInput('ignoressl', false);
                 secretYml = tl.getInput('secretsyml', false);
                 clientId = tl.getInput('azureclientid', false);

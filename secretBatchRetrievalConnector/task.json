@@ -28,14 +28,6 @@
         "defaultValue": "",
         "required": true,
         "helpMarkDown": "Select the Conjur end point to use."
-      },
-      {
-        "name": "secretsyml",
-        "type": "string",
-        "label": "Conjur secrets.yml File",
-        "defaultValue": "./secrets.yml",
-        "required": false,
-        "helpMarkDown": "Conjur secrets.yml File"
       }
     ],
     "execution": {

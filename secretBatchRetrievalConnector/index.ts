@@ -171,9 +171,11 @@ async function run() {
         //input from service connector
         var ep = tl.getInput('ConjurService', true);
         var hostname = tl.getEndpointUrlRequired(ep);
-        var account  = tl.getEndpointAuthorizationParameter(ep, 'conjuraccount', true);
-        var username = tl.getEndpointAuthorizationParameter(ep, 'conjurusername', true);
-        var apiKey = tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true);
+        console.log(tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true));
+        console.log(tl.getEndpointDataParameter(ep, 'conjurapikey', true));
+        var account  = tl.getEndpointDataParameter(ep, 'conjuraccount', true);
+        var username = tl.getEndpointDataParameter(ep, 'conjurusername', true);
+        var apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', true);
         var ignoreSsl: boolean | false = tl.getBoolInput('ignoressl', false);
     
         var secretYml = tl.getInput('secretsyml', false);
