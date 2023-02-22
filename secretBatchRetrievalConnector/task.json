@@ -16,7 +16,7 @@
     "version": {
       "Major": "0",
       "Minor": "1",
-      "Patch": "2"
+      "Patch": "6"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "Retrieve Conjur service Task $(project)",
@@ -28,6 +28,14 @@
         "defaultValue": "",
         "required": true,
         "helpMarkDown": "Select the Conjur end point to use."
+      },
+      {
+        "name": "secretsyml",
+        "type": "string",
+        "label": "Conjur secrets.yml File",
+        "defaultValue": "./secrets.yml",
+        "required": true,
+        "helpMarkDown": "Conjur secrets.yml File"
       }
     ],
     "execution": {
