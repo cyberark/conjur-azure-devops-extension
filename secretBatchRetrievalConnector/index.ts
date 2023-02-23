@@ -95,6 +95,7 @@ function getSecretsPath(hostname: string, token : string, ignoreSsl : boolean, s
 function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, ignoreSsl : boolean){
     var conjurSecret = JSON.parse(jsonData);
     if ('error' in conjurSecret){
+        console.log("Batch retrieval failed, falling back to single secret fetch at a time");
         for (let ele in secretPaths){
             getASecret(hostname, account, token, ele, ignoreSsl)
                 .then((data) => {
@@ -106,6 +107,7 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
         }
     }
     else{
+        console.log("Batch retrieval successful");
         for (let key in conjurSecret) {
             var items: string[] = key.split(":");
             var ele: string = items[items.length-1];

@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
       "id": "conjur-service-endpoint-batch",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "name": "Conjur API Key Based Service Connector",
       "description": "A service endpoint to connect to Conjur using API Key",
       "publisher": "pradeep12",
@@ -18,14 +18,14 @@
       ],
       "contributions": [
         {
-          "id": "service-endpoint",
+          "id": "service-endpoint-conjur",
           "description": "Service endpoint type for Conjur API Key Based connections",
           "type": "ms.vss-endpoint.service-endpoint-type",
           "targets": [ "ms.vss-endpoint.endpoint-types" ],
 
           "properties": {
-            "name": "Conjur",
-            "displayName": "Conjur Server Connection",
+            "name": "ConjurSC",
+            "displayName": "Conjur Batch Secrets Server Connection",
             "url": {
               "displayName": "URL to Conjur Endpoint"
             },
