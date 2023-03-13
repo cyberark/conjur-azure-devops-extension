@@ -92,7 +92,7 @@ function getSecretsPath(hostname: string, token : string, ignoreSsl : boolean, s
     return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl)
 }
 
-function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, ignoreSsl : boolean){
+function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, debug_mode: boolean, ignoreSsl : boolean){
     var conjurSecret = JSON.parse(jsonData);
     if ('error' in conjurSecret){
         console.log("Batch retrieval failed, falling back to single secret fetch at a time");
@@ -100,7 +100,8 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
             getASecret(hostname, account, token, ele, ignoreSsl)
                 .then((data) => {
                     tl.setVariable(secretPaths[ele], data.toString(), true);
-                    console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
+                    if(debug_mode == true)
+                      console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
                 })
                 .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message)
             )
@@ -112,7 +113,8 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
             var items: string[] = key.split(":");
             var ele: string = items[items.length-1];
             tl.setVariable(secretPaths[ele], conjurSecret[key], true);
-            console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
+            if(debug_mode == true)
+               console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
         }
     }
 }
@@ -124,7 +126,7 @@ function getASecret(hostname: string, account : string, token : string, secretId
     return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl);
 }
 
-function batchSecretRetrieval(hostname: string, account : string, token : string, secretYml : string, ignoreSsl : boolean){
+function batchSecretRetrieval(hostname: string, account : string, token : string, secretYml : string,  debug_mode: boolean, ignoreSsl : boolean){
     var secretsPath = [];
     var secret:ISecret = {}
     
@@ -142,7 +144,7 @@ function batchSecretRetrieval(hostname: string, account : string, token : string
             secretsPath.push(account + ":variable:" + encodeURIComponent(key));
         }
         getSecretsPath(hostname, token, ignoreSsl, secretsPath)
-        .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, ignoreSsl))
+        .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, ignoreSsl))
         .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
     });
 }
@@ -172,13 +174,21 @@ async function run() {
     try {
         //input from service connector
         var ep = tl.getInput('ConjurService', true);
+        var debug_mode: boolean; 
+        var ignoreSsl: boolean; 
         var hostname = tl.getEndpointUrlRequired(ep);
-        console.log(tl.getEndpointAuthorizationParameter(ep, 'conjurapikey', true));
-        console.log(tl.getEndpointDataParameter(ep, 'conjurapikey', true));
         var account  = tl.getEndpointDataParameter(ep, 'conjuraccount', true);
         var username = tl.getEndpointDataParameter(ep, 'conjurusername', true);
         var apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', true);
-        var ignoreSsl: boolean | false = tl.getBoolInput('ignoressl', false);
+        if(tl.getVariable('System.Debug') == 'true')
+            debug_mode = true;
+        else
+            debug_mode = false;
+
+        if(tl.getEndpointDataParameter(ep, 'ignoressl', true) == 'true')
+           ignoreSsl = true;
+        else
+           ignoreSsl = false;   
     
         var secretYml = tl.getInput('secretsyml', false);
         var clientId = tl.getInput('azureclientid', false);    
@@ -220,7 +230,7 @@ async function run() {
 
         // fetch the secrets
         authenticate(hostname, account, username, apiKey, authnType, true)
-        .then((data) => batchSecretRetrieval(hostname, account, data.toString(), secretYml, ignoreSsl))
+        .then((data) => batchSecretRetrieval(hostname, account, data.toString(), secretYml, debug_mode, ignoreSsl))
         .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
     }
     catch (err) {

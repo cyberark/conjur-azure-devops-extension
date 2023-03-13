@@ -3,7 +3,7 @@
     "name": "secretBatchRetrievalConnector",
     "friendlyName": "Batch Secrets Retrieval From Conjur using Service Connector",
     "description": "Retrieve secrets from Cyberark Conjur Secrets Manager using Service Connector",
-    "author": "pradeep12",
+    "author": "NirupmaVerma",
     "category": "Build",
     "visibility": [
       "Build",
@@ -16,7 +16,7 @@
     "version": {
       "Major": "0",
       "Minor": "1",
-      "Patch": "8"
+      "Patch": "10"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "Retrieve Conjur service Task $(project)",
