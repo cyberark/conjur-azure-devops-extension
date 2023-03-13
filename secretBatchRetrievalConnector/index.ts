@@ -65,7 +65,7 @@ function sendHttpRequest(hostname : string, endpoint : string, method : 'GET' | 
         })
         
         req.on('error', (error) => {
-            console.error(error)
+            tl.setResult(tl.TaskResult.Failed, `${error}`);
         })
         if(data) {
             req.write(data)
