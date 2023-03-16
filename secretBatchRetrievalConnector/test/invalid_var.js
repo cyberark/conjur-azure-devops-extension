@@ -12,5 +12,5 @@ process.env['ENDPOINT_URL_' + endpointId] = "https://localhost";
 process.env["ENDPOINT_DATA_" + endpointId + "_" + 'conjuraccount'.toUpperCase()] = 'myaccount';
 process.env["ENDPOINT_DATA_" + endpointId + "_" + 'conjurusername'.toUpperCase()] = 'admin';
 process.env["ENDPOINT_DATA_" + endpointId + "_" + 'conjurapikey'.toUpperCase()] = file.replace(/\s/g, '');
-tmr.setInput('secretsyml', path.join(__dirname, '..', 'test/test-secrets.yml'));
+tmr.setInput('secretsyml', path.join(__dirname, '..', 'test/invalid-secrets.yml'));
 tmr.run();
