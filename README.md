@@ -14,7 +14,7 @@ by CyberArk**. For more detailed information on our certification levels, see [o
 
 ## Usage
 
-For the full demonstration repository, please visit [https://github.com/Nirupma-Verma/AzurePipeline](# Conjur Azure DevOps Extension
+For the full demonstration repository, please visit [https://github.com/Nirupma-Verma/AzurePipeline]
 Azure Devops Task Extension for retrieving secrets from the Cyberark Conjur Secrets Manager
 
 ## Certification Level
