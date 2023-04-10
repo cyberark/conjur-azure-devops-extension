@@ -38,26 +38,3 @@ of our development workflows, please see our [contributing guide](CONTRIBUTING.m
 ## License
 This repository is licensed under Apache License 2.0 - see [`LICENSE`](LICENSE) for more details.
 ).
-
-### Declaring secretBatchRetrievalConnector Task
-
-```yaml
-- task: secretBatchRetrievalConnector@0
-  displayName: ConjurIntegeration
-  inputs:
-    ConjurService: 'ConjurSConnection'
-    secretsyml: './secret.yml'
-```
-
-## Development
-
-Please follow this guide to properaly set up this extension:
-https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=azure-devops
-
-## Contributing
-We welcome contributions of all kinds to this repository. For instructions on how to get started and descriptions
-of our development workflows, please see our [contributing guide](CONTRIBUTING.md).
-
-## License
-This repository is licensed under Apache License 2.0 - see [`LICENSE`](LICENSE) for more details.
-
