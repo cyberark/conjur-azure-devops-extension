@@ -17,7 +17,3 @@ function conjurExec() {
 function clientExec() {
   dockerCompose exec -T client "$@"
 }
-
-function terraformRun() {
-  dockerCompose exec -T terraform sh -ec "$@"
-}

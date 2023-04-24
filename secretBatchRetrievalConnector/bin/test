@@ -130,7 +130,8 @@ function configureConjur() {
 }
 
 function runTestCase() {
-  mocha "test/_suite.js"
+   docker-compose build "ado-extension"
+   docker-compose run ado-extension
 }
 
 function validateResults() {

@@ -12,3 +12,15 @@ services:
       CONJUR_SSL_CERTIFICATE:
     volumes:
       - $PWD/test:/test
+
+  ado-extension:
+    image: node:18
+    build: 
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      CONJUR_APPLIANCE_URL:
+      CONJUR_ACCOUNT:
+      CONJUR_AUTHN_LOGIN:
+      CONJUR_AUTHN_API_KEY:
+      CONJUR_SSL_CERTIFICATE:    

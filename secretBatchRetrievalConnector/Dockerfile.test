@@ -1,0 +1,12 @@
+FROM node:18
+
+WORKDIR /secretBatchRetrieval
+
+COPY package*.json ./
+
+RUN npm install && \
+    npm install -g mocha 
+
+COPY . ./
+
+CMD ["npm",  "run", "test"]

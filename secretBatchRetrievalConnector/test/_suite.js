@@ -34,7 +34,6 @@ describe("Fetch secret", function () {
         tr.run();
         console.log(tr.stdout);
         console.log("printv:: ", tr.errorIssues);
-        console.log("printl:: ", tr.errorIssues.length);
         assert.ok(tr.errorIssues.length > 0, "should not display the secret as invalid secret variables");
         done();
     });

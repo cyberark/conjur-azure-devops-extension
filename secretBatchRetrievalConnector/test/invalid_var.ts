@@ -8,7 +8,7 @@ let taskPath = path.join(__dirname, '..', 'index.js');
 let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 const endpointId = "ConjurService"
 tmr.setInput(endpointId, endpointId)
-process.env['ENDPOINT_URL_' + endpointId] = "https://localhost"
+process.env['ENDPOINT_URL_' + endpointId] = "https://conjur-server"
 process.env[`ENDPOINT_DATA_${endpointId}_${'conjuraccount'.toUpperCase()}`] = 'myaccount';
 process.env[`ENDPOINT_DATA_${endpointId}_${'conjurusername'.toUpperCase()}`] = 'admin';
 process.env[`ENDPOINT_DATA_${endpointId}_${'conjurapikey'.toUpperCase()}`] = file.replace(/\s/g, '');
