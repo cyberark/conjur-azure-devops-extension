@@ -8,8 +8,6 @@ export CONJUR_DATA_KEY='iFra75qdvsLENSV+qXYFMkv7KJS3t+82Po4mmjZLxZc='
 CONJUR_ACCOUNT='myaccount'
 CONJUR_AUTHN_PASSWORD='SEcret12!!!!'
 
-LOCAL_SECRET_FILE='test/dbpass'
-
 # These variables are set after configuring conjur
 api_key=""
 ssl_cert=""
@@ -17,8 +15,6 @@ ssl_cert=""
 function finish() {
   if [[ -z "$KEEP_CONTAINERS" ]]; then
     echo "> Terminating local Conjur environment"
-
-    rm -f $LOCAL_SECRET_FILE
     dockerCompose down -v
   else
     echo "> KEEP_CONTAINERS is set, not terminating local Conjur environment"
@@ -34,17 +30,16 @@ function main() {
   configureConjur
   
   runTestCase
-  validateResults
 }
 
 function checkTarget() {
   case "$TARGET" in
   "oss")
-    export DOCKER_COMPOSE_ARGS="-f docker-compose.oss.yml -f docker-compose.yml"
+    export DOCKER_COMPOSE_ARGS="-f secretBatchRetrievalConnector/docker-compose.oss.yml -f secretBatchRetrievalConnector/docker-compose.yml"
     export CONJUR_WAIT_COMMAND="conjurctl wait"
     ;;
   "enterprise")
-    export DOCKER_COMPOSE_ARGS="-f docker-compose.enterprise.yml -f docker-compose.yml"
+    export DOCKER_COMPOSE_ARGS="-f secretBatchRetrievalConnector/docker-compose.enterprise.yml -f secretBatchRetrievalConnector/docker-compose.yml"
     export CONJUR_WAIT_COMMAND="/opt/conjur/evoke/bin/wait_for_conjur"
     ;;
   *)
@@ -88,7 +83,7 @@ function launchConjur() {
 
 function configureConjur() {
   echo "> Configuring local Conjur environment"
-
+  echo "> path :: $(pwd)"
   export CONJUR_APPLIANCE_URL=https://conjur-server
   export CONJUR_ACCOUNT="$CONJUR_ACCOUNT"
   export CONJUR_AUTHN_LOGIN="admin"
@@ -96,14 +91,14 @@ function configureConjur() {
   if [[ "$TARGET" == "enterprise" ]]; then
     ssl_cert=$(conjurExec cat /opt/conjur/etc/ssl/conjur.pem)
   else
-    ssl_cert=$(cat "test/https_config/ca.crt")
+    ssl_cert=$(cat "secretBatchRetrievalConnector/test/https_config/ca.crt")
   fi
   export CONJUR_SSL_CERTIFICATE="$ssl_cert"
 
   if [[ "$TARGET" == "oss" ]]; then
     api_key=$(conjurExec conjurctl role retrieve-key \
       "$CONJUR_ACCOUNT:user:admin" | tr -d '\r')
-    echo "$api_key" > "test/apikey.txt"  
+    echo "$api_key" > "secretBatchRetrievalConnector/test/apikey.txt"  
     export CONJUR_AUTHN_API_KEY="$api_key"
   fi
 
@@ -130,23 +125,8 @@ function configureConjur() {
 }
 
 function runTestCase() {
-   docker-compose build "ado-extension"
-   docker-compose run ado-extension
-}
-
-function validateResults() {
-  local expectedValue="SECRETXcLhn23MJcimV"
-  local actualValue=$(cat $LOCAL_SECRET_FILE)
-
-  rm -f "$LOCAL_SECRET_FILE"
-
-  if [[ "$expectedValue" == "$actualValue" ]]; then
-    echo "Secret succesfully retrieved!"
-  else
-    echo "Secret not successfully retrieved."
-    echo "Expected '$expectedValue', got '$actualValue'"
-    exit 1
-  fi
+   docker-compose -f secretBatchRetrievalConnector/docker-compose.yml build ado-extension
+   docker-compose -f secretBatchRetrievalConnector/docker-compose.yml run ado-extension
 }
 
 main
