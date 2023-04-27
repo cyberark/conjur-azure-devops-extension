@@ -6,8 +6,6 @@
 properties([
   // Include the automated release parameters for the build
   release.addParams(),
-  // Dependencies of the project that should trigger builds
-  dependencies(['cyberark/conjur-base-image', 'cyberark/conjur-api-ruby'])
 ])
 
 // Performs release promotion.  No other stages will be run
@@ -54,24 +52,31 @@ pipeline {
       }
     }
     // Generates a VERSION file based on the current build number and latest version in CHANGELOG.md
-    stage('Validate Changelog and set version') {
-      steps {
-        updateVersion("CHANGELOG.md", "${BUILD_NUMBER}")
-      }
-    }
+    // stage('Validate Changelog and set version') {
+    //   steps {
+    //     updateVersion("CHANGELOG.md", "${BUILD_NUMBER}")
+    //   }
+    // }
 
     stage('Build') {
       steps {
-        // Perform any builds here
+        sh './secretBatchRetrievalConnector/bin/build'
+        // archiveArtifacts artifacts: "*.vsix", fingerprint: true
       }
     }
 
-    stage('Test') {
+    stage('Run Tests (OSS)') {
       steps {
-        // Perform any testing here
+        sh './secretBatchRetrievalConnector/bin/test oss'
       }
     }
-  
+
+    stage('Run Tests (Enterprise)') {
+      steps {
+        sh './secretBatchRetrievalConnector/bin/test enterprise'
+      }
+    }
+
     stage('Release') {
       when {
         expression {
