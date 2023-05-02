@@ -20,6 +20,14 @@ function base64(input : string) : string {
     return  Buffer.from(input).toString('base64')
 }
 
+function removeApi(input : string){ 
+    if (input.endsWith('/api')) { 
+       return [input.replace("/api", ""), "/api"]
+    } else {
+        return [input, ""]
+    }    
+}
+
 function getTokenHeader(token : string) {
     return "Token token=\"" + base64(token) + "\"";
 }
@@ -76,20 +84,24 @@ function sendHttpRequest(hostname : string, endpoint : string, method : 'GET' | 
 
 // conjur api functions
 function authenticate(hostname: string, account : string, username : string, apiKey : string, type : AuthnTypes, ignoreSsl : boolean) {
+    var hname, api;
+    [hname, api] = removeApi(hostname);
     switch(type) {
         case AuthnTypes.ApiKey:
             username = encodeURIComponent(username);
-            var endpoint = `/authn/${account}/${username}/authenticate`;
-            return sendHttpRequest(hostname, endpoint, 'POST', "", apiKey, ignoreSsl);
+            var endpoint = `${api}/authn/${account}/${username}/authenticate`;
+            return sendHttpRequest(hname, endpoint, 'POST', "", apiKey, ignoreSsl);
         default:
             tl.setResult(tl.TaskResult.Failed, `Invalid authentication type '${type}'. Valid types are 'apiKey'`)
     }
 }
 
 function getSecretsPath(hostname: string, token : string, ignoreSsl : boolean, secretPath: any[]){
-    var endpoint = `/secrets?variable_ids=${secretPath}`;
+    var hname, api;
+    [hname, api] = removeApi(hostname);
+    var endpoint = `${api}/secrets?variable_ids=${secretPath}`;
     token = getTokenHeader(token);
-    return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl)
+    return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl)
 }
 
 function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, debug_mode: boolean, ignoreSsl : boolean){
@@ -120,10 +132,12 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
 }
 
 function getASecret(hostname: string, account : string, token : string, secretId: string, ignoreSsl : boolean){
+    var hname, api;
+    [hname, api] = removeApi(hostname);
     secretId = encodeURIComponent(secretId);
-    var endpoint = `/secrets/${account}/variable/${secretId}`;
+    var endpoint = `${api}/secrets/${account}/variable/${secretId}`;
     token = getTokenHeader(token);
-    return sendHttpRequest(hostname, endpoint, 'GET', token, null, ignoreSsl);
+    return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl);
 }
 
 function batchSecretRetrieval(hostname: string, account : string, token : string, secretYml : string,  debug_mode: boolean, ignoreSsl : boolean){
