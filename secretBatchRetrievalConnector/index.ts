@@ -84,8 +84,7 @@ function sendHttpRequest(hostname : string, endpoint : string, method : 'GET' | 
 
 // conjur api functions
 function authenticate(hostname: string, account : string, username : string, apiKey : string, type : AuthnTypes, ignoreSsl : boolean) {
-    var hname, api;
-    [hname, api] = removeApi(hostname);
+    var [hname, api] = removeApi(hostname);
     switch(type) {
         case AuthnTypes.ApiKey:
             username = encodeURIComponent(username);
@@ -97,8 +96,7 @@ function authenticate(hostname: string, account : string, username : string, api
 }
 
 function getSecretsPath(hostname: string, token : string, ignoreSsl : boolean, secretPath: any[]){
-    var hname, api;
-    [hname, api] = removeApi(hostname);
+    var [hname, api] = removeApi(hostname);
     var endpoint = `${api}/secrets?variable_ids=${secretPath}`;
     token = getTokenHeader(token);
     return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl)
@@ -132,8 +130,7 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
 }
 
 function getASecret(hostname: string, account : string, token : string, secretId: string, ignoreSsl : boolean){
-    var hname, api;
-    [hname, api] = removeApi(hostname);
+    var [hname, api] = removeApi(hostname);
     secretId = encodeURIComponent(secretId);
     var endpoint = `${api}/secrets/${account}/variable/${secretId}`;
     token = getTokenHeader(token);
