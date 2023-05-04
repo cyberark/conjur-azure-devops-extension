@@ -29,21 +29,29 @@ The Azure DevOps Extension does not support creating, updating or removing secre
 | Conjur Cloud           |          |
 | Azure DevOps account   |          |
 
-## Setup
+# Prerequisites
+
+The following are prerequisites to using the Spring Boot Plugin.
+
+## Conjur setup
+
+Conjur (OSS or Enterprise or Cloud) and the Conjur CLI are installed in the environment and running in the background.
+
+## Azure DevOps Setup
 
 * Download Conjur Azure DevOps Extension from Azure Marketplace
 * Install the extension to an Azure DevOps organization
 * Search for installed extension in Project Settings > Pipelines > Service connection > Create service connection
 
-     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/service-connection.png" width="300" height="300">
+     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/ado_jenkinfile/images/service-connection.png" width="300" height="300">
 
 * Add the Conjur details in Service Connection 
 
-     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/setupSC.png" width="400" height="500">
+     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/ado_jenkinfile/images/setupSC.png" width="400" height="500">
 
 * In Pipeline > Task > Search with Batch Secret Retrieval > Select the Service Connection and provide path of secrets.yml file
 
-     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
+     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/ado_jenkinfile/images/pipelineTask.png" width="500" height="500">
 
 * Under steps in azure-pipeline.yml task is added
 
