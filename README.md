@@ -1,5 +1,7 @@
 # Conjur Azure DevOps Extension
-Azure Devops Task Extension for retrieving secrets from the Cyberark Conjur Secrets Manager
+Azure Devops Task Extension with API Key Authentication mechanism for supporting batch retrieval of secrets from the Cyberark Conjur Secrets Manager in secured way through Azure DevOps Pipeline.
+
+The Authentication parameters to connect to Conjur Server are configured in Service Connection.
 
 ## Certification Level
 ![](https://img.shields.io/badge/Certification%20Level-Community-28A745?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
@@ -7,24 +9,55 @@ Azure Devops Task Extension for retrieving secrets from the Cyberark Conjur Secr
 This repo is a **Community** level project. It's a community contributed project that **is not reviewed or supported
 by CyberArk**. For more detailed information on our certification levels, see [our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community).
 
-## Requirements
-- Conjur Secrets Manager Enterprise v10+
-- Conjur Secrets Manager Open Source v1.1+
-- Azure DevOps
+## Features
 
-## Usage
+The following features are available with the Azure DevOps Extension:
 
-For the full demonstration repository, please visit [https://github.com/Nirupma-Verma/AzurePipeline](https://github.com/Nirupma-Verma/AzurePipeline).
+* API authentication
+* Batch retrieval of secrets from Conjur Server with help of secured Service Connection
 
-### Declaring secretBatchRetrievalConnector Task
+## Limitations
+
+The Azure DevOps Extension does not support creating, updating or removing secrets
+
+## Technical Requirements
+
+| Technology             | Version  |
+| ---------------------- | -------- |
+| Conjur OSS             | 1.9+     |
+| Conjur Enterprise      | 12.5+    |
+| Conjur Cloud           |          |
+| Azure DevOps account   |          |
+
+## Setup
+
+* Download Conjur Azure DevOps Extension from Azure Marketplace
+* Install the extension to an Azure DevOps organization
+* Search for installed extension in Project Settings > Pipelines > Service connection > Create service connection
+
+     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/service-connection.png" width="300" height="300">
+
+* Add the Conjur details in Service Connection 
+
+     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/setupSC.png" width="400" height="500">
+
+* In Pipeline > Task > Search with Batch Secret Retrieval > Select the Service Connection and provide path of secrets.yml file
+
+     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
+
+* Under steps in azure-pipeline.yml task is added
 
 ```yaml
+steps:
 - task: secretBatchRetrievalConnector@0
   displayName: ConjurIntegeration
   inputs:
     ConjurService: 'ConjurSConnection'
-    secretsyml: './secret.yml'
+    secretsyml: './secrets.yml'
 ```
+## Usage
+
+For the full demonstration repository, please visit [https://github.com/Nirupma-Verma/AzurePipeline](https://github.com/Nirupma-Verma/AzurePipeline).
 
 ## Development
 
