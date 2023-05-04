@@ -53,6 +53,13 @@ Conjur (OSS or Enterprise or Cloud) and the Conjur CLI are installed in the envi
 
      <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
 
+* secrets.yml file format
+
+```yaml
+SECRET: !var BotApp/secretVar
+ANOTHER_SECRET: !var some-other-secret
+```
+
 * Under steps in azure-pipeline.yml task is added
 
 ```yaml
@@ -63,9 +70,6 @@ steps:
     ConjurService: 'ConjurSConnection'
     secretsyml: './secrets.yml'
 ```
-## Usage
-
-For the full demonstration repository, please visit [https://github.com/Nirupma-Verma/AzurePipeline](https://github.com/Nirupma-Verma/AzurePipeline).
 
 ## Development
 
