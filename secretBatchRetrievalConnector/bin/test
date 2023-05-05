@@ -109,6 +109,7 @@ function configureConjur() {
     echo ">> Logging in CLI to the server"
     clientExec conjur authn login -u admin -p "$CONJUR_AUTHN_PASSWORD"
     api_key=$(clientExec conjur user rotate_api_key)
+    echo "$api_key" > "secretBatchRetrievalConnector/test/apikey.txt"
     export CONJUR_AUTHN_API_KEY="$api_key"
   fi
 
