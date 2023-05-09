@@ -40,6 +40,7 @@ var tl = require("azure-pipelines-task-lib/task");
 var https = require("https");
 var fs = require("fs");
 var readline = require('readline');
+var file_type_supported = ['.yml', '.yaml'];
 // utility functions
 function trimRight(input, trimStr) {
     if (input === null || input === void 0 ? void 0 : input.endsWith(trimStr)) {
@@ -171,12 +172,22 @@ function batchSecretRetrieval(hostname, account, token, secretYml, debug_mode, i
         if (line.toString().includes(': !var')) {
             createISecret(line, secret);
         }
+        else {
+            tl.setResult(tl.TaskResult.Failed, 'Secret path not found in required format. Format required "SECRET_VAR: !var /secret/path"');
+        }
     }).on('close', function (line) {
         for (var key in secret) {
             secretsPath.push(account + ":variable:" + encodeURIComponent(key));
         }
-        getSecretsPath(hostname, token, ignoreSsl, secretsPath)
-            .then(function (jsonData) { return setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, ignoreSsl); })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
+        if (secretsPath.length > 0) {
+            getSecretsPath(hostname, token, ignoreSsl, secretsPath)
+                .then(function (jsonData) { return setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, ignoreSsl); })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
+        }
+        else {
+            return tl.setResult(tl.TaskResult.Failed, 'No data or secret path not found in required format');
+        }
+    }).on('error', function (err) {
+        tl.setResult(tl.TaskResult.Failed, err.message);
     });
 }
 function createISecret(line, secret) {
@@ -196,7 +207,7 @@ var AuthnTypes;
 })(AuthnTypes || (AuthnTypes = {}));
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var ep, debug_mode, ignoreSsl, hostname, account, username, apiKey, secretYml, clientId, authnType, error_message;
+        var ep, debug_mode, ignoreSsl, hostname, account, username, apiKey, secretYml, clientId, authnType, path, error_message;
         return __generator(this, function (_a) {
             try {
                 ep = tl.getInput('ConjurService', true);
@@ -230,6 +241,12 @@ function run() {
                 }
                 if (!secretYml) {
                     secretYml = "./secrets.yml";
+                }
+                else {
+                    path = require('path');
+                    if (!file_type_supported.includes(path.extname(secretYml).toLowerCase())) {
+                        return [2 /*return*/, tl.setResult(tl.TaskResult.Failed, "Only .yml, .yaml extension file supported")];
+                    }
                 }
                 if (!clientId) {
                     clientId = "";
