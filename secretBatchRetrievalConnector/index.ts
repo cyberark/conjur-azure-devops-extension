@@ -151,7 +151,7 @@ function batchSecretRetrieval(hostname: string, account : string, token : string
         if (line.toString().includes(': !var')) {
             createISecret(line, secret);       
         }else{
-            tl.setResult(tl.TaskResult.Failed, 'Secret path not found in required format. Format required eg: "SECRET_VAR: !var /secret/path"');  
+            tl.setResult(tl.TaskResult.Failed, `Secret path not found in required format at line '${line}'. Format required eg: "SECRET_VAR: !var /secret/path"`);  
         }
     }).on('close', function(line) {
         for (let key in secret) {

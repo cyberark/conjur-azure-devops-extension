@@ -173,7 +173,7 @@ function batchSecretRetrieval(hostname, account, token, secretYml, debug_mode, i
             createISecret(line, secret);
         }
         else {
-            tl.setResult(tl.TaskResult.Failed, 'Secret path not found in required format. Format required "SECRET_VAR: !var /secret/path"');
+            tl.setResult(tl.TaskResult.Failed, "Secret path not found in required format at line '" + line + "'. Format required eg: \"SECRET_VAR: !var /secret/path\"");
         }
     }).on('close', function (line) {
         for (var key in secret) {
