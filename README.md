@@ -31,7 +31,7 @@ The Azure DevOps Extension does not support creating, updating or removing secre
 
 # Prerequisites
 
-The following are prerequisites to using the Spring Boot Plugin.
+The following are prerequisites to use Azure DevOps extension.
 
 ## Conjur setup
 
