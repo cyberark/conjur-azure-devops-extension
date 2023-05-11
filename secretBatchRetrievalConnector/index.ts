@@ -2,6 +2,7 @@ import tl = require('azure-pipelines-task-lib/task');
 import https = require('https');
 import * as fs from 'fs';
 const readline = require('readline');
+const file_type_supported: string[] = ['.yml', '.yaml'];
 
 // utility functions
 function trimRight(input : string, trimStr : string) : string{
@@ -149,14 +150,22 @@ function batchSecretRetrieval(hostname: string, account : string, token : string
     readInterface.on('line', function(line) {
         if (line.toString().includes(': !var')) {
             createISecret(line, secret);       
+        }else{
+            tl.setResult(tl.TaskResult.Failed, `Secret path not found in required format at line '${line}'. Format required eg: "SECRET_VAR: !var /secret/path"`);  
         }
     }).on('close', function(line) {
         for (let key in secret) {
             secretsPath.push(account + ":variable:" + encodeURIComponent(key));
         }
-        getSecretsPath(hostname, token, ignoreSsl, secretsPath)
-        .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, ignoreSsl))
-        .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
+        if (secretsPath.length > 0){
+            getSecretsPath(hostname, token, ignoreSsl, secretsPath)
+            .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, ignoreSsl))
+            .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
+        }else{
+            return tl.setResult(tl.TaskResult.Failed, 'No data or secret path not found in required format'); 
+        }    
+    }).on('error', function(err) {
+        tl.setResult(tl.TaskResult.Failed, err.message);
     });
 }
 
@@ -220,6 +229,11 @@ async function run() {
         }
         if (!secretYml) {
             secretYml = "./secrets.yml";
+        }else{
+            var path = require('path');
+            if (!file_type_supported.includes(path.extname(secretYml).toLowerCase())){
+                return tl.setResult(tl.TaskResult.Failed, "Only .yml, .yaml extension file supported");
+            } 
         }
         if (!clientId) {
             clientId = "";
