@@ -1,10 +1,10 @@
 {
     "manifestVersion": 1,
-      "id": "conjur-service-endpoint-batch",
-      "version": "0.1.10",
-      "name": "Conjur API Key Based Service Connector",
-      "description": "A service endpoint to connect to Conjur using API Key",
-      "publisher": "NirupmaVerma",
+      "id": "cyberark-conjur-credentials",
+      "version": "1.0.0",
+      "name": "CyberArk Conjur Service Connector",
+      "description": "Service connector that allows to pull secrets at runtime in a secured way from CyberArk’s Conjur Secret Manager",
+      "publisher": "CyberArk",
       "icons": {
         "default": "images/icon.png"
       },
@@ -19,7 +19,7 @@
       "contributions": [
         {
           "id": "service-endpoint-conjur",
-          "description": "Service endpoint type for Conjur API Key Based connections",
+          "description": "Service endpoint type for Cyberark Conjur connections",
           "type": "ms.vss-endpoint.service-endpoint-type",
           "targets": [ "ms.vss-endpoint.endpoint-types" ],
 
