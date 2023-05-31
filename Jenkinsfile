@@ -61,7 +61,7 @@ pipeline {
     stage('Build') {
       steps {
         sh './secretBatchRetrievalConnector/bin/build'
-        // archiveArtifacts artifacts: "*.vsix", fingerprint: true
+        archiveArtifacts artifacts: "*.vsix", fingerprint: true
       }
     }
 
