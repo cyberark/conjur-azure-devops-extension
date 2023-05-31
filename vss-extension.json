@@ -14,6 +14,11 @@
           "id": "Microsoft.VisualStudio.Services"
         }
       ], 
+      "content": {
+        "details": {
+            "path": "overview.md"
+        }
+      },
       "categories": [
         "Azure Pipelines"
       ],
