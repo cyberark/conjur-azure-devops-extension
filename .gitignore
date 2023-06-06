@@ -1,2 +1,3 @@
 .DS_Store
 apikey.txt
+*.vsix
