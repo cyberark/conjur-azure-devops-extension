@@ -40,7 +40,8 @@ Conjur (OSS or Enterprise or Cloud) and the Conjur CLI are installed in the envi
 This section describes how to set up the API Authentication for Conjur OSS or Enterprise
 
 1. Define the API Authentication policy
-     a. Create a policy that defines the API Authentication, for example BotApp.
+
+- Create a policy that defines the API Authentication, for example BotApp.
 ```yaml
 - !policy
   id: BotApp
@@ -63,11 +64,13 @@ This section describes how to set up the API Authentication for Conjur OSS or En
     resource: *variables
 ```
 
-     b. Save the policy as BotApp.yml, and load it to root:
-```yaml
+- Save the policy as BotApp.yml, and load it to root:
+
+```
      conjur policy load -b root -f /path/to/file/authn-iam.yml
 ```
-     Conjur generates the following API keys:
+     
+- Conjur generates the following API keys:
      - An API key for Dave, the human user. This key is used to authenticate user Dave to Conjur.
      - An API key for BotApp, the non-human identity. This key is used to authenticate BotApp application to Conjur.
 
