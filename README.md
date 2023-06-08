@@ -37,6 +37,112 @@ The following are prerequisites to use Azure DevOps extension.
 
 Conjur (OSS or Enterprise or Cloud) and the Conjur CLI are installed in the environment and running in the background.
 
+This section describes how to set up the API Authentication for Conjur OSS or Enterprise
+
+1. Define the API Authentication policy
+
+- Create a policy that defines the API Authentication, for example BotApp.
+```yaml
+- !policy
+  id: BotApp
+  body:
+    # Define a human user, a non-human identity that represents an application, and a secret
+  - !user Dave
+  - !host myDemoApp
+  - &variables
+      - !variable secretVar
+      - !variable some-other-secret
+  - !permit
+    # Give permissions to the human user to update the secret and fetch the secret.
+    role: !user Dave
+    privileges: [read, update, execute]
+    resource: *variables
+  - !permit
+    # Give permissions to the non-human identity to fetch the secret.
+    role: !host myDemoApp
+    privileges: [read, execute]
+    resource: *variables
+```
+
+- Save the policy as BotApp.yml, and load it to root:
+
+```
+     conjur policy load -b root -f /path/to/file/authn-iam.yml
+```
+     
+- Conjur generates the following API keys:
+     - An API key for Dave, the human user. This key is used to authenticate user Dave to Conjur.
+     - An API key for BotApp, the non-human identity. This key is used to authenticate BotApp application to Conjur.
+
+     Those API keys is correlated with the number of Users & Hosts defined in a policy.
+
+2.  Set the secret    
+     a. Generate a secret
+
+     Generate a value for your application’s secret:
+     ```
+     secretVal=$(openssl rand -hex 12 | tr -d '\r\n')
+     ```
+
+     This generates a 12-hex-character value.
+
+     b. Store the secret
+
+     Store the generated value in Conjur:
+     ```
+     conjur variable set -i BotApp/secretVar -v ${secretVal}
+     ```
+
+     A policy predefined variable named `BotApp/secretVar` is set with a random
+     generated secret.
+
+This section describes how to set up the API Authentication for Conjur Cloud
+
+Pre-requisite:
+- Conjur cloud
+- Pcloud
+- Conjur cloud cli
+
+<small><a href='https://docs-er.cyberark.com/ConjurCloud/en/Content/ConjurCloud/ccl-manage-users.htm?tocpath=Get%20started%7CTutorial%7C_____1'>Refer the tutorial for Conjur Cloud Setup </a></small>
+1. Manage Conjur Cloud users
+2. Set up the Conjur Cloud CLI
+3. Log in to Conjur Cloud
+4. Sync Privilege Cloud Safe to Conjur
+
+To create a simple host that authenticates using an API key:
+
+Create a policy for the host:
+
+```yaml
+- !host
+  id: <host name>
+  annotations:
+    authn/api-key: true
+```    
+Save the policy as myapp-host.yaml.
+
+Load the policy file into the data policy branch:
+
+```
+conjur policy load -b data -f myapp-host.yaml
+```
+
+To grant permissions on secrets:
+
+```yaml
+- !grant
+  role: !group delegation/consumers
+  member: !host /data/myapp
+```
+
+Save the file as grant_permissions.yml.
+
+Load the policy to data/vault/secrets-safe:
+
+```
+conjur policy load -b data/vault/secrets-safe -f grant_permissions.yml
+```
+
 ## Azure DevOps Setup
 
 * Download Conjur Azure DevOps Extension from Azure Marketplace
@@ -53,11 +159,20 @@ Conjur (OSS or Enterprise or Cloud) and the Conjur CLI are installed in the envi
 
      <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
 
-* secrets.yml file format
+* secrets.yml file format  
+
+- Conjur OSS or Enterprise
 
 ```yaml
 SECRET: !var BotApp/secretVar
 ANOTHER_SECRET: !var some-other-secret
+```
+
+- Conjur Cloud
+
+```yaml
+SECRET: !var data/vault/secrets-safe/ado_secret_apikey/address
+ANOTHER_SECRET: !var data/vault/secrets-safe/ado_secret_apikey/username
 ```
 
 * Under steps in azure-pipeline.yml task is added
@@ -82,4 +197,3 @@ of our development workflows, please see our [contributing guide](CONTRIBUTING.m
 
 ## License
 This repository is licensed under Apache License 2.0 - see [`LICENSE`](LICENSE) for more details.
-).
