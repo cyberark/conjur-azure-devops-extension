@@ -30,8 +30,6 @@ retrieve_cyberark_ca_cert() {
 }
 
 build_and_package_vsxi() {
-  git fetch --tags  # jenkins does not do this automatically yet
-
   docker build -f Dockerfile.build -t node-docker .
 
   echo "> Building and packaging vsxi"

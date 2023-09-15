@@ -20,7 +20,7 @@ if (params.MODE == "PROMOTE") {
 }
 
 pipeline {
-  agent { label 'executor-v2' }
+  agent { label 'conjur-enterprise-common-agent' }
 
   options {
     timestamps()
@@ -51,29 +51,47 @@ pipeline {
         }
       }
     }
+
+    stage('Get InfraPool ExecutorV2 Agent') {
+      steps {
+        script {
+          // Request ExecutorV2 agents for 1 hour(s)
+          INFRAPOOL_EXECUTORV2_AGENT_0 = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
+        }
+      }
+    }
+
     // Generates a VERSION file based on the current build number and latest version in CHANGELOG.md
     stage('Validate Changelog and set version') {
       steps {
-        updateVersion("CHANGELOG.md", "${BUILD_NUMBER}")
+        script {
+          updateVersion(INFRAPOOL_EXECUTORV2_AGENT_0, "CHANGELOG.md", "${BUILD_NUMBER}")
+        }
       }
     }
 
     stage('Build') {
       steps {
-        sh './secretBatchRetrievalConnector/bin/build'
-        archiveArtifacts artifacts: "*.vsix", fingerprint: true
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './secretBatchRetrievalConnector/bin/build'
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentArchiveArtifacts artifacts: "*.vsix", fingerprint: true
+        }
       }
     }
 
     stage('Run Tests (OSS)') {
       steps {
-        sh './secretBatchRetrievalConnector/bin/test oss'
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './secretBatchRetrievalConnector/bin/test oss'
+        }
       }
     }
 
     stage('Run Tests (Enterprise)') {
       steps {
-        sh './secretBatchRetrievalConnector/bin/test enterprise'
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './secretBatchRetrievalConnector/bin/test enterprise'
+        }
       }
     }
 
@@ -85,9 +103,11 @@ pipeline {
       }
 
       steps {
-        release { billOfMaterialsDirectory, assetDirectory ->
-          // Publish release artifacts to all the appropriate locations
-          // Copy any artifacts to assetDirectory to attach them to the Github release
+        script {
+          release(INFRAPOOL_EXECUTORV2_AGENT_0) { billOfMaterialsDirectory, assetDirectory ->
+            // Publish release artifacts to all the appropriate locations
+            // Copy any artifacts to assetDirectory to attach them to the Github release
+          }
         }
       }
     }
@@ -95,7 +115,9 @@ pipeline {
 
   post {
     always {
-      cleanupAndNotify(currentBuild.currentResult)
+      script {
+        releaseInfraPoolAgent(".infrapool/release_agents")
+      }
     }
   }
 }
