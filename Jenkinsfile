@@ -95,6 +95,14 @@ pipeline {
       }
     }
 
+    stage('Run Tests (cloud)') {
+      steps {
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'summon ./secretBatchRetrievalConnector/bin/test cloud'
+        }
+      }
+    }
+
     stage('Release') {
       when {
         expression {
