@@ -13,22 +13,27 @@ api_key=""
 ssl_cert=""
 
 function finish() {
+  case "$TARGET" in
+  "oss" | "enterprise")
   if [[ -z "$KEEP_CONTAINERS" ]]; then
     echo "> Terminating local Conjur environment"
     dockerCompose down -v
   else
     echo "> KEEP_CONTAINERS is set, not terminating local Conjur environment"
   fi
+  esac
 }
 trap finish EXIT
 
 function main() {
   checkTarget
-  loadUtils
-
-  launchConjur
-  configureConjur
-  
+  case "$TARGET" in
+  "oss" | "enterprise")
+    loadUtils
+    launchConjur
+    configureConjur
+    ;;
+  esac
   runTestCase
 }
 
@@ -41,6 +46,8 @@ function checkTarget() {
   "enterprise")
     export DOCKER_COMPOSE_ARGS="-f secretBatchRetrievalConnector/docker-compose.enterprise.yml -f secretBatchRetrievalConnector/docker-compose.yml"
     export CONJUR_WAIT_COMMAND="/opt/conjur/evoke/bin/wait_for_conjur"
+    ;;
+  "cloud")
     ;;
   *)
     echo "> '$TARGET' is not a supported target"
@@ -87,6 +94,7 @@ function configureConjur() {
   export CONJUR_APPLIANCE_URL=https://conjur-server
   export CONJUR_ACCOUNT="$CONJUR_ACCOUNT"
   export CONJUR_AUTHN_LOGIN="admin"
+  export TARGET="$TARGET"
 
   if [[ "$TARGET" == "enterprise" ]]; then
     ssl_cert=$(conjurExec cat /opt/conjur/etc/ssl/conjur.pem)
@@ -122,10 +130,18 @@ function configureConjur() {
   clientExec conjur variable values add azure-example/dbpass SECRETXcLhn23MJcimV
   clientExec conjur variable values add azure-example/database/username azure_user
   clientExec conjur variable values add azure-example/user-name azure_test_user
-  # unexportConjurVars
 }
 
 function runTestCase() {
+  case "$TARGET" in
+  "cloud")
+    export CONJUR_ACCOUNT="$CONJUR_CLOUD_ACCOUNT"
+    export CONJUR_APPLIANCE_URL="$CONJUR_APPLIANCE_URL"
+    echo "$CONJUR_API_KEY" > "secretBatchRetrievalConnector/test/apikey.txt" 
+    export CONJUR_AUTHN_LOGIN="host/$HOST_ID"
+    export TARGET="$TARGET"
+    ;;
+  esac
    docker-compose -f secretBatchRetrievalConnector/docker-compose.yml build ado-extension
    docker-compose -f secretBatchRetrievalConnector/docker-compose.yml run ado-extension
 }
