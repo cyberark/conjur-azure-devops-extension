@@ -142,8 +142,8 @@ function runTestCase() {
     export TARGET="$TARGET"
     ;;
   esac
-   docker-compose -f secretBatchRetrievalConnector/docker-compose.yml build ado-extension
-   docker-compose -f secretBatchRetrievalConnector/docker-compose.yml run ado-extension
+   docker compose -f secretBatchRetrievalConnector/docker-compose.yml build ado-extension
+   docker compose -f secretBatchRetrievalConnector/docker-compose.yml run ado-extension
 }
 
 main
