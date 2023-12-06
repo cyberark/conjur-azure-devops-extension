@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "azure-pipelines-task-lib": "^4.2.0"
+    "azure-pipelines-task-lib": "^4.2.0",
+    "https-proxy-agent": "5.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",

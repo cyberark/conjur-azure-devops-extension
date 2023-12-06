@@ -41,6 +41,7 @@ var https = require("https");
 var fs = require("fs");
 var readline = require('readline');
 var file_type_supported = ['.yml', '.yaml'];
+var HttpsProxyAgent = require('https-proxy-agent');
 // utility functions
 function trimRight(input, trimStr) {
     if (input === null || input === void 0 ? void 0 : input.endsWith(trimStr)) {
@@ -78,29 +79,52 @@ function sendHttpRequest(hostname, endpoint, method, authorization, data, ignore
     if (data) {
         dataLength = data.length;
     }
+    console.log("config :: ", tl.getHttpProxyConfiguration(), "proxy :: ", tl.getVariable('Agent.proxyUrl') == undefined, "username:: ", tl.getVariable('Agent.proxyUsername'));
+    if (tl.getVariable('Agent.proxyUrl') != undefined) {
+        var proxyUrl = (tl.getVariable('Agent.proxyUsername') != undefined) ? tl.getVariable('Agent.proxyUrl').split("://")[0] + '://' + tl.getVariable('Agent.proxyUsername') + ':' + tl.getVariable('Agent.proxyPassword') + '@' + tl.getVariable('Agent.proxyUrl').split("://")[1] : tl.getVariable('Agent.proxyUrl');
+        console.log("proxyURl:: ", proxyUrl);
+        var proxyAgent = new HttpsProxyAgent(proxyUrl);
+    }
+    var options = {};
     return new Promise(function (resolve, reject) {
-        var options = {
-            hostname: hostname,
-            port: 443,
-            path: endpoint,
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': dataLength,
-                'Authorization': authorization
-            }
-        };
+        if (tl.getHttpProxyConfiguration() != null) {
+            options = {
+                agent: proxyAgent,
+                hostname: hostname,
+                port: 443,
+                path: endpoint,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': dataLength,
+                    'Authorization': authorization
+                }
+            };
+        }
+        else {
+            options = {
+                hostname: hostname,
+                port: 443,
+                path: endpoint,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': dataLength,
+                    'Authorization': authorization
+                }
+            };
+        }
         var responseBody = [];
         var req = https.request(options, function (res) {
             res.on('data', function (chunk) { return responseBody.push(chunk); });
             res.on('end', function () { return resolve(responseBody.join('')); });
             // If non-200 code is returned from any call using this method the task extension will fail
             if (res.statusCode != 200) {
-                tl.setResult(tl.TaskResult.Failed, "recieved status code '" + res.statusCode + "': " + responseBody.join(''));
+                tl.setResult(tl.TaskResult.Failed, "recieved status code '".concat(res.statusCode, "': ").concat(responseBody.join('')));
             }
         });
         req.on('error', function (error) {
-            tl.setResult(tl.TaskResult.Failed, "" + error);
+            tl.setResult(tl.TaskResult.Failed, "".concat(error));
         });
         if (data) {
             req.write(data);
@@ -114,15 +138,15 @@ function authenticate(hostname, account, username, apiKey, type, ignoreSsl) {
     switch (type) {
         case AuthnTypes.ApiKey:
             username = encodeURIComponent(username);
-            var endpoint = api + "/authn/" + account + "/" + username + "/authenticate";
+            var endpoint = "".concat(api, "/authn/").concat(account, "/").concat(username, "/authenticate");
             return sendHttpRequest(hname, endpoint, 'POST', "", apiKey, ignoreSsl);
         default:
-            tl.setResult(tl.TaskResult.Failed, "Invalid authentication type '" + type + "'. Valid types are 'apiKey'");
+            tl.setResult(tl.TaskResult.Failed, "Invalid authentication type '".concat(type, "'. Valid types are 'apiKey'"));
     }
 }
 function getSecretsPath(hostname, token, ignoreSsl, secretPath) {
     var _a = removeApi(hostname), hname = _a[0], api = _a[1];
-    var endpoint = api + "/secrets?variable_ids=" + secretPath;
+    var endpoint = "".concat(api, "/secrets?variable_ids=").concat(secretPath);
     token = getTokenHeader(token);
     return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl);
 }
@@ -135,7 +159,7 @@ function setAzureSecrets(jsonData, secretPaths, hostname, account, token, debug_
                 .then(function (data) {
                 tl.setVariable(secretPaths[ele_1], data.toString(), true);
                 if (debug_mode == true)
-                    console.log("Set conjur secret '" + ele_1 + "' to azure variable '" + secretPaths[ele_1] + "'");
+                    console.log("Set conjur secret '".concat(ele_1, "' to azure variable '").concat(secretPaths[ele_1], "'"));
             })["catch"](function (err) { return tl.setResult(tl.TaskResult.Failed, err.message); });
         };
         for (var ele_1 in secretPaths) {
@@ -149,14 +173,14 @@ function setAzureSecrets(jsonData, secretPaths, hostname, account, token, debug_
             var ele = items[items.length - 1];
             tl.setVariable(secretPaths[ele], conjurSecret[key], true);
             if (debug_mode == true)
-                console.log("Set conjur secret '" + ele + "' to azure variable '" + secretPaths[ele] + "'");
+                console.log("Set conjur secret '".concat(ele, "' to azure variable '").concat(secretPaths[ele], "'"));
         }
     }
 }
 function getASecret(hostname, account, token, secretId, ignoreSsl) {
     var _a = removeApi(hostname), hname = _a[0], api = _a[1];
     secretId = encodeURIComponent(secretId);
-    var endpoint = api + "/secrets/" + account + "/variable/" + secretId;
+    var endpoint = "".concat(api, "/secrets/").concat(account, "/variable/").concat(secretId);
     token = getTokenHeader(token);
     return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl);
 }
@@ -173,7 +197,7 @@ function batchSecretRetrieval(hostname, account, token, secretYml, debug_mode, i
             createISecret(line, secret);
         }
         else {
-            tl.setResult(tl.TaskResult.Failed, "Secret path not found in required format at line '" + line + "'. Format required eg: \"SECRET_VAR: !var /secret/path\"");
+            tl.setResult(tl.TaskResult.Failed, "Secret path not found in required format at line '".concat(line, "'. Format required eg: \"SECRET_VAR: !var /secret/path\""));
         }
     }).on('close', function (line) {
         for (var key in secret) {
@@ -193,7 +217,7 @@ function batchSecretRetrieval(hostname, account, token, secretYml, debug_mode, i
 function createISecret(line, secret) {
     var secretSections = line.split(": !var ");
     if (secretSections.length != 2) {
-        tl.setResult(tl.TaskResult.Failed, "Failed to retrieve secret name and path from '" + line + "'");
+        tl.setResult(tl.TaskResult.Failed, "Failed to retrieve secret name and path from '".concat(line, "'"));
     }
     var secretName = secretSections[0].trim();
     var secretPath = secretSections[1].trim();
