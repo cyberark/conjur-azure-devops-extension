@@ -3,6 +3,7 @@ import https = require('https');
 import * as fs from 'fs';
 const readline = require('readline');
 const file_type_supported: string[] = ['.yml', '.yaml'];
+var HttpsProxyAgent = require('https-proxy-agent');
 
 // utility functions
 function trimRight(input : string, trimStr : string) : string{
@@ -48,17 +49,43 @@ function sendHttpRequest(hostname : string, endpoint : string, method : 'GET' | 
         dataLength = data.length;
     }
 
+    console.log("config :: ", tl.getHttpProxyConfiguration(), "proxy :: ", tl.getVariable('Agent.proxyUrl') == undefined, "username:: ", tl.getVariable('Agent.proxyUsername'));
+    
+    if(tl.getVariable('Agent.proxyUrl') != undefined){
+        var proxyUrl = (tl.getVariable('Agent.proxyUsername') != undefined) ? tl.getVariable('Agent.proxyUrl').split("://")[0] + '://' + tl.getVariable('Agent.proxyUsername') + ':' + tl.getVariable('Agent.proxyPassword') + '@' + tl.getVariable('Agent.proxyUrl').split("://")[1] : tl.getVariable('Agent.proxyUrl');
+        console.log("proxyURl:: ", proxyUrl);
+        var proxyAgent = new HttpsProxyAgent(proxyUrl);
+    }   
+
+    var options = {}
+
     return new Promise((resolve, reject) => {     
-        const options = {
-            hostname: hostname,
-            port: 443,
-            path: endpoint,
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': dataLength,
-                'Authorization': authorization
+        if(tl.getHttpProxyConfiguration() != null){
+            options = {
+                agent: proxyAgent,
+                hostname: hostname,
+                port: 443,
+                path: endpoint,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': dataLength,
+                    'Authorization': authorization
+                }
             }
+        }
+        else{
+            options = {
+                hostname: hostname,
+                port: 443,
+                path: endpoint,
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': dataLength,
+                    'Authorization': authorization
+                }
+            } 
         }
 
         var responseBody = []

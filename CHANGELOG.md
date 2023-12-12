@@ -7,5 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+## [1.1.0]
+- Extension now supports for the agent to run behind a web proxy
+
+### Added
 ## [1.0.0]
 - Extension now supports to Fetch Bulk secrets from Conjur Vault
