@@ -149,15 +149,15 @@ conjur policy load -b data/vault/secrets-safe -f grant_permissions.yml
 * Install the extension to an Azure DevOps organization
 * Search for installed extension in Project Settings > Pipelines > Service connection > Create service connection
 
-     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/service-connection.png" width="300" height="300">
+     <img src="https://github.cyberng.com/Conjur-Enterprise/conjur-azure-devops-extension/blob/main/images/service-connection.png" width="300" height="300">
 
 * Add the Conjur details in Service Connection 
 
-     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/setupSC.png" width="400" height="500">
+     <img src="https://github.cyberng.com/Conjur-Enterprise/conjur-azure-devops-extension/blob/main/images/setupSC.png" width="400" height="500">
 
 * In Pipeline > Task > Search with Batch Secret Retrieval > Select the Service Connection and provide path of secrets.yml file
 
-     <img src="https://github.com/cyberark/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
+     <img src="https://github.cyberng.com/Conjur-Enterprise/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
 
 * secrets.yml file format  
 

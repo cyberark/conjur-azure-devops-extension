@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha test/_suite.js"
+    "test": "NODE_ENV=test mocha test/_suite.js",
+    "ts-coverage": "typescript-coverage-report"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,7 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.13.0",
     "@types/q": "^1.5.5",
-    "sync-request": "^6.1.0"
+    "sync-request": "^6.1.0",
+    "typescript-coverage-report": "^0.8.0"
   }
 }
