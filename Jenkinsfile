@@ -115,6 +115,7 @@ pipeline {
           release(INFRAPOOL_EXECUTORV2_AGENT_0) { billOfMaterialsDirectory, assetDirectory ->
             // Publish release artifacts to all the appropriate locations
             // Copy any artifacts to assetDirectory to attach them to the Github release
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentSh "cp *.vsix ${assetDirectory}/."
           }
         }
       }

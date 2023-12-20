@@ -5,8 +5,9 @@ WORKDIR /secretBatchRetrieval
 COPY package*.json ./
 
 RUN npm install && \
+    npm install -g concurrently && \
     npm install -g mocha 
 
 COPY . ./
 
-CMD ["npm",  "run", "test"]
+CMD ["concurrently","npm run test", "npm run ts-coverage"]
