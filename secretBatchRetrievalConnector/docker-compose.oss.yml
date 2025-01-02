@@ -1,14 +1,9 @@
 version: '3'
 services:
   database:
-    image: postgres:10
+    image: postgres:15
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 5s
-      retries: 5
 
   conjur:
     image: cyberark/conjur:edge
