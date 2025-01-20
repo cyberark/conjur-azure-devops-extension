@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+## [1.2.3]
+- Fix missing node_modules directory
+
+## [1.2.2]
+- Addressed issue with extension package upload
+
+### Added
+## [1.2.1]
+- Added overview.md to the extension package
+
+### Added
+## [1.2.0]
+- Node version upgrade
+
+### Added
 ## [1.1.0]
 - Extension now supports for the agent to run behind a web proxy
 
