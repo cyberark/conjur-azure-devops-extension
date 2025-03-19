@@ -1,13 +1,18 @@
 {
     "manifestVersion": 1,
       "id": "cyberark-conjur-credentials",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "name": "CyberArk Conjur Service Connector",
       "description": "Service connector that allows to pull secrets at runtime in a secured way from CyberArk’s Conjur Secret Manager",
       "publisher": "CyberArk",
       "public": true,
       "icons": {
         "default": "images/icon.png"
+      },
+      "content": {
+        "details": {
+          "path": "overview.md"
+        }
       },
       "targets": [
         {
@@ -97,10 +102,6 @@
       "files": [
         {
           "path": "secretBatchRetrievalConnector"
-        },
-        {
-          "path": "overview.md",
-          "addressable": true
         }
       ]
     }

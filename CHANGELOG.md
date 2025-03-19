@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+## [1.2.2]
+- Addressed issue with extension package upload
+
+### Added
 ## [1.2.1]
 - Added overview.md to the extension package
 
