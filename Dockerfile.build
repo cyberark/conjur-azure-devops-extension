@@ -12,4 +12,4 @@ RUN npm update && \
 
 WORKDIR /azure-trial
 
-CMD ["tfx", "extension", "create", "--manifest-globs", "vss-extension.json"]
+CMD ["./secretBatchRetrievalConnector/bin/entrypoint.sh"]
