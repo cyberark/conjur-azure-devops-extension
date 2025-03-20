@@ -274,6 +274,7 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
                console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
         }
     }
+    token = ""
 }
 
 function getASecret(hostname: string, account : string, token : string, secretId: string, certContent?: string){
