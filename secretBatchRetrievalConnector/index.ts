@@ -83,6 +83,12 @@ function validatePemCertificate(certContent: string): string {
   
     try {
       const cert = forge.pki.certificateFromPem(certContent);
+      const currentDate = new Date();
+      if (cert.validity.notBefore <= currentDate && cert.validity.notAfter >= currentDate) {
+        console.log("Certificate is valid.");
+      } else {
+        throw new CertificateValidationError("Certificate is expired.");
+      }
       return certContent; // Return the validated PEM certificate content
     } catch (error) {
         if (error instanceof Error) {

@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
-    "@types/node": "^18.13.0",
+    "@types/node": "^18.19.80",
     "@types/node-fetch": "^2.6.12",
     "@types/q": "^1.5.5",
     "sync-request": "^6.1.0",
