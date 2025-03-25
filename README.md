@@ -178,6 +178,120 @@ Sample Access Token Microsoft Entra ID:
 }
 ```
 
+### Conjur OSS and Enterprise JWT Authentication
+1. Define the JWT Authentication policy
+    
+* Create a policy that defines JWT Authentication auth-jwt.yml
+```
+- !policy
+  id: conjur/authn-jwt/azure
+  body:
+      - !webservice
+ 
+      #Mandatory variable: The JWT provider URI
+      #Uncomment either 'provider-uri' OR 'jwks-uri'
+ 
+      #- !variable
+      #    id: provider-uri
+ 
+      - !variable
+        id: jwks-uri
+ 
+      #Optional variables
+      #Uncomment one or all of the following optional variables.
+      #Note: If you uncomment 'token-app-property' you must also uncomment 'identity-path',
+      #and vice versa;
+ 
+      - !variable
+        id: token-app-property
+ 
+      - !variable
+        id: identity-path
+ 
+      - !variable
+        id: issuer
+ 
+      #Group of applications that can authenticate using this JWT Authenticator
+      - !group apps
+ 
+      - !permit
+        role: !group apps
+        privilege: [read, authenticate]
+        resource: !webservice
+ 
+      - !webservice
+        id: status
+ 
+      #Group of users who can check the status of the JWT Authenticator
+      - !group
+        id: operators
+ 
+      - !permit
+        role: !group operators
+        privilege: [read]
+        resource: !webservice status
+```
+* Save the policy and load it to root
+```  
+  conjur policy load -f auth-jwt.yml -b root
+```
+* Populate the policy variables
+
+```
+CONJUR_AUTHENTICATORS=authn-jwt/azure,authn
+conjur variable set -i conjur/authn-jwt/azure/token-app-property -v 'appid'
+conjur variable set -i conjur/authn-jwt/$CONJUR_AUTHENTICATOR_ID/identity-path -v "azure-apps"
+conjur variable set -i conjur/authn-jwt/$CONJUR_AUTHENTICATOR_ID/issuer -v "https://sts.windows.net/bd830b04-9cc5-
+488b-8099-fcabcdb1f6fa/"
+conjur variable set -i conjur/authn-jwt/$CONJUR_AUTHENTICATOR_ID/jwks-uri -v "https://login.windows.net/common
+/discovery/keys"
+```
+
+* Define an app ID (host) and save it as authn-host.yaml
+
+```
+- !policy
+  id: azure-apps
+  body:
+      - !group
+ 
+      - &hosts
+        - !host
+          id: 6e9b3631-0853-403a-a0b5-3d098b289dbd
+          annotations:
+              authn-jwt/azure/sub: 25f1c7c5-bfad-4be3-bc49-28f3e6a3b5f0
+ 
+      - !grant
+        role: !group
+        members: *hosts
+ 
+- !grant
+  role: !group conjur/authn-jwt/azure/apps
+  member: !group azure-apps
+```
+* Load the policy to branch root
+```
+conjur policy load -f authn-host.yaml -b root
+```
+
+* Define variables in Conjur to represent your secrets and give the workload permission to access to the secrets
+``` 
+- &devvariables
+   - !variable Dev-Team-credential1
+   - !variable Dev-Team-credential2
+   - !variable Dev-Team-credential3
+   - !variable Dev-Team-credential4
+- !permit
+  resource: *devvariables
+  privileges: [ read, execute ]
+  roles: !group github-apps
+```
+* Save the policy as secret-variables.yml, and use the Conjur CLI to load into root
+```
+conjur policy load -f /path/to/file/secret-variables.yml -b root
+```
+
+### Conjur Cloud JWT Authentication
 1. Define the JWT Authentication policy
     
 * Create a policy that defines JWT Authentication auth-jwt.yml
@@ -241,7 +355,7 @@ conjur policy load -f vault-permission.yaml -b data/vault/Secret_Safe
 
 * In Pipeline > Task > Search with Batch Secret Retrieval > Select the Service Connection and provide path of secrets.yml file
 
-     <img src="https://github.cyberng.com/Conjur-Enterprise/conjur-azure-devops-extension/blob/main/images/pipelineTask.png" width="500" height="500">
+![alt text][def11]
 
 * secrets.yml file format  
 
@@ -318,5 +432,6 @@ This repository is licensed under Apache License 2.0 - see [`LICENSE`](LICENSE) 
 [def8]: images/Azure-service-connection.png
 [def9]: images/JWT-Secret-Retrival.png
 [def10]: images/JWT-AzurePipeline.png
+[def11]: images/API-service-connection.png
 
 
