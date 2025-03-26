@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+## [1.3.0]
+- Support for JWT authentication using Workload Federation
+
+### Added
 ## [1.2.4]
 - Fix task and extension version to same version number
 

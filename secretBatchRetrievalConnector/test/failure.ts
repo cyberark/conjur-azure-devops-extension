@@ -4,7 +4,7 @@ import path = require('path');
 
 let taskPath = path.join(__dirname, '..', 'index.js');
 let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
-const endpointId = "ConjurAPIService";
+const endpointId = "ConjurService";
 tmr.setInput(endpointId, endpointId);
 tmr.setInput('authntype', 'api')
 process.env['ENDPOINT_URL_' + endpointId] = "http://localhost";

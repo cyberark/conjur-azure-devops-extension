@@ -90,10 +90,12 @@ function initOIDCToken(connection, projectId, hub, planId, jobId, serviceConnect
                     }, waitedTime);
                 }
                 else {
+                    tl.setResult(tl.TaskResult.Failed, 'CouldNotFetchAccessTokenforAAD');
                     deferred.reject('CouldNotFetchAccessTokenforAAD');
                 }
             }
         }, (error) => {
+            tl.setResult(tl.TaskResult.Failed, 'CouldNotFetchAccessTokenforAAD' + " " + error);
             deferred.reject('CouldNotFetchAccessTokenforAAD' + " " + error);
         });
     });

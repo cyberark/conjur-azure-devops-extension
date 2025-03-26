@@ -14,8 +14,8 @@
     },
     "demands": [],
     "version": {
-      "Major": "2",
-      "Minor": "0",
+      "Major": "1",
+      "Minor": "3",
       "Patch": "0"
     },
     "minimumAgentVersion": "1.95.0",
@@ -37,7 +37,7 @@
         }
       },
       {
-        "name": "ConjurAPIService",
+        "name": "ConjurService",
         "type": "connectedService:ConjurSC",
         "label": "Conjur service/server end point",
         "defaultValue": "",

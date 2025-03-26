@@ -66,11 +66,13 @@ function initOIDCToken(connection: WebApi, projectId: string, hub: string, planI
                     deferred.resolve(initOIDCToken(connection, projectId, hub, planId, jobId, serviceConnectionId, retryCount, waitedTime));
                 }, waitedTime);
             } else {
+                tl.setResult(tl.TaskResult.Failed, 'CouldNotFetchAccessTokenforAAD');
                 deferred.reject('CouldNotFetchAccessTokenforAAD');
             }
         }
     },
     (error) => {
+        tl.setResult(tl.TaskResult.Failed, 'CouldNotFetchAccessTokenforAAD'+ " " + error);
         deferred.reject('CouldNotFetchAccessTokenforAAD' + " " + error);
     }
 );

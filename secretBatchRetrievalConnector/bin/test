@@ -139,7 +139,7 @@ function runTestCase() {
     export CONJUR_APPLIANCE_URL="$CONJUR_APPLIANCE_URL"
     echo "$CONJUR_API_KEY" > "secretBatchRetrievalConnector/test/apikey.txt" 
     export CONJUR_AUTHN_LOGIN="host/$HOST_ID"
-    ssl_cert=$(cat "secretBatchRetrievalConnector/test/https_config/cloud.pem")
+    ssl_cert=$(cat "secretBatchRetrievalConnector/test/https_config/fullchain.pem")
     export CONJUR_SSL_CERTIFICATE="$ssl_cert"
     export TARGET="$TARGET"
     ;;

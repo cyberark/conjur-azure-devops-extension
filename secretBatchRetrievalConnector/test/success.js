@@ -6,7 +6,7 @@ const fs_1 = require("fs");
 const file = (0, fs_1.readFileSync)(path.join(__dirname, '..', 'test/apikey.txt'), 'utf-8');
 let taskPath = path.join(__dirname, '..', 'index.js');
 let tmr = new tmrm.TaskMockRunner(taskPath);
-const endpointId = "ConjurAPIService";
+const endpointId = "ConjurService";
 tmr.setInput(endpointId, endpointId);
 tmr.setInput('authntype', 'api');
 process.env['ENDPOINT_URL_' + endpointId] = process.env.CONJUR_APPLIANCE_URL;

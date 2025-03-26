@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
       "id": "cyberark-conjur-credentials",
-      "version": "2.0.0",
+      "version": "1.3.0",
       "name": "CyberArk Conjur Service Connector",
       "description": "Service connector that allows to pull secrets at runtime in a secured way from CyberArk’s Conjur Secret Manager",
       "publisher": "CyberArk",
@@ -82,6 +82,18 @@
                 "name": "Conjur CA Cert",
                 "description": "Conjur server CA Certificate Content",
                 "inputMode": "textarea",
+                "default": "false",
+                "isConfidential": false,
+                "validation": {
+                  "isRequired": false,
+                  "dataType": "string"
+                }
+              },
+              {
+                "id": "ignoressl",
+                "name": "Ignore SSL Error",
+                "description": "Check to ignore SSL errors when making HTTPS connection",
+                "inputMode": "CheckBox",
                 "default": "false",
                 "isConfidential": false,
                 "validation": {

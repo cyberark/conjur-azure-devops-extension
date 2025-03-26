@@ -39,76 +39,72 @@ function removeApi(input : string){
     }    
 }
 
-function readJsonFile(filePath: string): any {
-    const jsonData = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(jsonData);
-}
-
-function finaltelemetryHeader(){
-    let telemetryHeader:string | null = '';
-    const data = readJsonFile('./task.json');
-    let version = data.version;
-
-    telemetryHeader += "in="+integrationName;
-    telemetryHeader += "&iv="+version.Major + "." + version.Minor + "." + version.Patch;
-    telemetryHeader += "&it="+integrationType;
-
-    telemetryHeader += "&vn="+vendorName;
-    if (vendorVersion != null) {
-        telemetryHeader += "&vv="+vendorVersion;
-    }
-
-    return Buffer.from(telemetryHeader).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); 
-}
-
-class CertificateValidationError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = "CertificateValidationError";
-    }
-}
-
 function normalizeCertificate(certContent: string): string {
     certContent = certContent.replace('%0A', '\n').replace(/\r\n|\r/g, '\n').trim(); 
     return certContent.replace(/^[ \t]+/gm, '').replace(/[ \t]+$/gm, '').replace(/\n+/g, '\n');
 }
-  
-function validatePemCertificate(certContent: string): string {
-    certContent = normalizeCertificate(certContent);
-  
-    // Ensure certificate is in PEM format
-    if (!/^-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----$/.test(certContent)) {
-        throw new CertificateValidationError("Invalid Certificate format.");
-    }
-  
+
+ // Function to handle the common certificate validation
+function validateCertificate(cert: forge.pki.Certificate, caStore: forge.pki.CaStore): boolean {
     try {
-      const cert = forge.pki.certificateFromPem(certContent);
-      const currentDate = new Date();
-      if (cert.validity.notBefore <= currentDate && cert.validity.notAfter >= currentDate) {
-        console.log("Certificate is valid.");
-      } else {
-        throw new CertificateValidationError("Certificate is expired.");
-      }
-      return certContent; // Return the validated PEM certificate content
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new CertificateValidationError(`Invalid certificate content: ${error.message}. Please check the certificate format.`);
+        forge.pki.verifyCertificateChain(caStore, [cert]);
+        console.log('Certificate chain is valid and trusted');
+        const currentDate = new Date();
+        if (cert.validity.notBefore <= currentDate && cert.validity.notAfter >= currentDate) {
+            console.log("Certificate is valid.");
+            return true;
+        } else {
+            tl.setResult(tl.TaskResult.Failed, `Certificate is expired.`);
+            return false;
         }
+    } catch (err) {
+        tl.setResult(tl.TaskResult.Failed, `Certificate validation failed: ${err.message}`);
+        return false;
     }
 }
 
-async function getValidCertificate(certContent: string | undefined): Promise<string> {
+function validatePemCertificate(certContent: string) {
+    certContent = normalizeCertificate(certContent);
+    const certs = certContent.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
+    
+    if (!certs || certs.length === 0) {
+        tl.setResult(tl.TaskResult.Failed, `Invalid PEM file. No certificates found.`);
+        return;
+    }
+
+    const parsedCerts = certs.map(cert => forge.pki.certificateFromPem(cert));
+    const caStore = forge.pki.createCaStore();
+    console.log("parsedCerts.length:: ", parsedCerts.length);
+  
+    if (parsedCerts.length >= 2) {
+        const endEntityCert = parsedCerts[0];
+        const chainCerts = parsedCerts.slice(1);
+
+        try {
+            // Add all intermediate certificates to CA store
+            chainCerts.forEach(cert => caStore.addCertificate(cert));
+
+            // Validate the certificate chain
+            if (validateCertificate(endEntityCert, caStore)) {
+                return certContent;
+            }
+        } catch (err) {
+            tl.setResult(tl.TaskResult.Failed, `Certificate chain validation failed: ${err.message}`);
+        }
+    } else {
+        tl.setResult(tl.TaskResult.Failed, `Please provide complete certificate chain.`);
+    }
+}
+
+async function getValidCertificate(certContent: string | undefined) {
     if (certContent) {
       try {
         console.log("Validating provided certificate content...");
         return validatePemCertificate(certContent);
       } catch (error) {
-        if (error instanceof CertificateValidationError) {
-          console.warn(`Invalid certificate content: ${error.message}. `);
-        }
+        console.warn(`Invalid certificate content: ${error.message}. `);
       }
     }
-    throw new CertificateValidationError("Certificate content are invalid or missing. Please provide a valid certificate.");
 }
   
 function getTokenHeader(token : string) {
@@ -125,8 +121,7 @@ function getHttpOptions(hostname: string, endpoint: string, method: 'GET' | 'POS
         headers: {
             'Content-Type': 'application/json',
             'Content-Length': dataLength,
-            'Authorization': authorization,
-            'x-cybr-telemetry': finaltelemetryHeader()
+            'Authorization': authorization
         },
     };
 }
@@ -169,6 +164,7 @@ function sendHttpRequest(hostname: string, endpoint: string, method: 'GET' | 'PO
         });
 
         req.on('error', (error) => {
+            console.log("error coming from server in response..........");
             tl.setResult(tl.TaskResult.Failed, `${error}`);
         });
 
@@ -335,7 +331,7 @@ function createISecret(line : string, secret: ISecret):ISecret {
 async function run() {
     try {
         //input from service connector
-        var authnType = tl.getInput('authntype', true);
+        var authnType = tl.getInput('authntype', false);
         var debug_mode: boolean; 
         var ep;
         var connectedServiceName;
@@ -346,18 +342,17 @@ async function run() {
         let apiKey: string = '';
         let certContent: string = '';
 
-        if (authnType == "api"){
-            ep = tl.getInput('ConjurAPIService', true);
-            username = tl.getEndpointDataParameter(ep, 'conjurusername', false) || '';
-            apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', false);
-        } else if (authnType == "jwt"){
+        if (authnType == "jwt"){
             ep = tl.getInput('ConjurJWTService', true);  
             connectedServiceName =  tl.getInput('serviceNameAzureRM', false);
             accessToken = await getFederatedWorkloadIdentityAccessToken(connectedServiceName);
             serviceId = tl.getEndpointDataParameter(ep, 'conjurserviceid', false);
             hostId = tl.getEndpointDataParameter(ep, 'conjurhostid', true);
         } else {
-            tl.setResult(tl.TaskResult.Failed, "Please select appropriate authentication mechanism");
+            authnType ="api"
+            ep = tl.getInput('ConjurService', true);
+            username = tl.getEndpointDataParameter(ep, 'conjurusername', false) || '';
+            apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', false);
         }
         var hostname = tl.getEndpointUrlRequired(ep) || '';
         var account  = tl.getEndpointDataParameter(ep, 'conjuraccount', false) || '';
@@ -376,13 +371,12 @@ async function run() {
         } catch (err) {
             tl.setResult(tl.TaskResult.Failed, err.message);
         }
-    
-        let secretYml: string = tl.getInput('secretsyml', false) || './secrets.yml';
+
         var path = require('path');
+        let secretYml: string = tl.getInput('secretsyml', false) || './secrets.yml';
         if (!file_type_supported.includes(path.extname(secretYml).toLowerCase())){
             return tl.setResult(tl.TaskResult.Failed, "Only .yml, .yaml extension file supported");
         } 
-         
         // sanitize
         hostname = trimRight(hostname, '/');
         hostname = removeHttps(hostname);

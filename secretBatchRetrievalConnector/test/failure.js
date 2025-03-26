@@ -4,7 +4,7 @@ const tmrm = require("azure-pipelines-task-lib/mock-run");
 const path = require("path");
 let taskPath = path.join(__dirname, '..', 'index.js');
 let tmr = new tmrm.TaskMockRunner(taskPath);
-const endpointId = "ConjurAPIService";
+const endpointId = "ConjurService";
 tmr.setInput(endpointId, endpointId);
 tmr.setInput('authntype', 'api');
 process.env['ENDPOINT_URL_' + endpointId] = "http://localhost";
