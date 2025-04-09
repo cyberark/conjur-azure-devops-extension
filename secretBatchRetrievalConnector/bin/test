@@ -134,11 +134,13 @@ function configureConjur() {
 
 function runTestCase() {
   case "$TARGET" in
-  "cloud")
+  "cloud")    
     export CONJUR_ACCOUNT="$CONJUR_CLOUD_ACCOUNT"
     export CONJUR_APPLIANCE_URL="$CONJUR_APPLIANCE_URL"
     echo "$CONJUR_API_KEY" > "secretBatchRetrievalConnector/test/apikey.txt" 
     export CONJUR_AUTHN_LOGIN="host/$HOST_ID"
+    ssl_cert=$(cat "secretBatchRetrievalConnector/test/https_config/fullchain.pem")
+    export CONJUR_SSL_CERTIFICATE="$ssl_cert"
     export TARGET="$TARGET"
     ;;
   esac
