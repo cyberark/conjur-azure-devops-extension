@@ -1,0 +1,37 @@
+# conjur policy load -f auth-jwt.yml -b conjur/authn-jwt
+# conjur authenticator enable --id authn-jwt/azure
+# conjur variable set -i conjur/authn-jwt/azure/token-app-property -v 'appid'
+# conjur variable set -i conjur/authn-jwt/$CONJUR_AUTHENTICATOR_ID/identity-path -v "data/azure-apps"
+# conjur variable set -i conjur/authn-jwt/$CONJUR_AUTHENTICATOR_ID/issuer -v "https://sts.windows.net/bd830b04-9cc5-488b-8099-fcabcdb1f6fa/"
+# conjur variable set -i conjur/authn-jwt/$CONJUR_AUTHENTICATOR_ID/jwks-uri -v "https://login.windows.net/common/discovery/keys"
+
+- !policy
+  id: azure
+  body:
+    - !webservice
+
+    - !variable jwks-uri
+  
+    - !variable token-app-property
+   
+    - !variable identity-path
+  
+    - !variable issuer
+      
+    # Group of applications that can authenticate using this JWT Authenticator
+    - !group apps
+  
+    - !permit
+      role: !group apps
+      privilege: [ read, authenticate ]
+      resource: !webservice
+  
+    - !webservice status
+  
+    # Group of users who can check the status of the JWT Authenticator
+    - !group operators
+  
+    - !permit
+      role: !group operators
+      privilege: [ read ]
+      resource: !webservice status

@@ -4,6 +4,15 @@ import * as fs from 'fs';
 const readline = require('readline');
 const file_type_supported: string[] = ['.yml', '.yaml'];
 var HttpsProxyAgent = require('https-proxy-agent');
+import { getFederatedWorkloadIdentityAccessToken } from "./token-generator";
+import * as querystring from 'querystring';
+// @ts-ignore
+import * as forge from 'node-forge';
+
+let integrationName:string = "Azure DevOps Extension";
+let integrationType:string = "cybr-secretsmanager";
+let vendorName:string = "Microsoft";
+let vendorVersion:string | null = null;
 
 // utility functions
 function trimRight(input : string, trimStr : string) : string{
@@ -30,112 +39,218 @@ function removeApi(input : string){
     }    
 }
 
-function getTokenHeader(token : string) {
-    return "Token token=\"" + base64(token) + "\"";
+function normalizeCertificate(certContent: string): string {
+    certContent = certContent.replace('%0A', '\n').replace(/\r\n|\r/g, '\n').trim(); 
+    return certContent.replace(/^[ \t]+/gm, '').replace(/[ \t]+$/gm, '').replace(/\n+/g, '\n');
 }
 
-function sendHttpRequest(hostname : string, endpoint : string, method : 'GET' | 'POST', authorization : string, data : string, ignoreSsl : boolean) {
-    // very helpful for debugging but does leak passwords/tokens when in debug mode
-    // console.debug(`------------\n${method} ${hostname}${endpoint}\nAuthorization: ${authorization}\n\n${data}`)
+ // Function to handle the common certificate validation
+function validateCertificate(cert: forge.pki.Certificate, caStore: forge.pki.CaStore): boolean {
+    try {
+        forge.pki.verifyCertificateChain(caStore, [cert]);
+        console.log('Certificate chain is valid and trusted');
+        const currentDate = new Date();
+        if (cert.validity.notBefore <= currentDate && cert.validity.notAfter >= currentDate) {
+            console.log("Certificate is valid.");
+            return true;
+        } else {
+            tl.setResult(tl.TaskResult.Failed, `Certificate is expired.`);
+            return false;
+        }
+    } catch (err) {
+        tl.setResult(tl.TaskResult.Failed, `Certificate validation failed: ${err.message}`);
+        return false;
+    }
+}
+
+function validatePemCertificate(certContent: string) {
+    certContent = normalizeCertificate(certContent);
+    const certs = certContent.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
     
-    if(ignoreSsl) {
-        // this will auto prompt with warning
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    if (!certs || certs.length === 0) {
+        tl.setResult(tl.TaskResult.Failed, `Invalid PEM file. No certificates found.`);
+        return;
     }
 
-    // posting data must include Content-Length in HTTP header
-    var dataLength = 0;
-    if (data) {
-        dataLength = data.length;
-    }
+    const parsedCerts = certs.map(cert => forge.pki.certificateFromPem(cert));
+    const caStore = forge.pki.createCaStore();
+    console.log("parsedCerts.length:: ", parsedCerts.length);
+  
+    if (parsedCerts.length >= 2) {
+        const endEntityCert = parsedCerts[0];
+        const chainCerts = parsedCerts.slice(1);
 
-    console.log("config :: ", tl.getHttpProxyConfiguration(), "proxy :: ", tl.getVariable('Agent.proxyUrl') == undefined, "username:: ", tl.getVariable('Agent.proxyUsername'));
-    
-    if(tl.getVariable('Agent.proxyUrl') != undefined){
-        var proxyUrl = (tl.getVariable('Agent.proxyUsername') != undefined) ? tl.getVariable('Agent.proxyUrl').split("://")[0] + '://' + tl.getVariable('Agent.proxyUsername') + ':' + tl.getVariable('Agent.proxyPassword') + '@' + tl.getVariable('Agent.proxyUrl').split("://")[1] : tl.getVariable('Agent.proxyUrl');
-        console.log("proxyURl:: ", proxyUrl);
-        var proxyAgent = new HttpsProxyAgent(proxyUrl);
-    }   
+        try {
+            // Add all intermediate certificates to CA store
+            chainCerts.forEach(cert => caStore.addCertificate(cert));
 
-    var options = {}
-
-    return new Promise((resolve, reject) => {     
-        if(tl.getHttpProxyConfiguration() != null){
-            options = {
-                agent: proxyAgent,
-                hostname: hostname,
-                port: 443,
-                path: endpoint,
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': dataLength,
-                    'Authorization': authorization
-                }
+            // Validate the certificate chain
+            if (validateCertificate(endEntityCert, caStore)) {
+                return certContent;
             }
+        } catch (err) {
+            tl.setResult(tl.TaskResult.Failed, `Certificate chain validation failed: ${err.message}`);
         }
-        else{
-            options = {
-                hostname: hostname,
-                port: 443,
-                path: endpoint,
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': dataLength,
-                    'Authorization': authorization
-                }
-            } 
-        }
+    } else {
+        tl.setResult(tl.TaskResult.Failed, `Please provide complete certificate chain.`);
+    }
+}
 
-        var responseBody = []
-        
+async function getValidCertificate(certContent: string | undefined) {
+    if (certContent) {
+      try {
+        console.log("Validating provided certificate content...");
+        return validatePemCertificate(certContent);
+      } catch (error) {
+        console.warn(`Invalid certificate content: ${error.message}. `);
+      }
+    }
+}
+  
+function getTokenHeader(token : string) {
+    return `Token token="${base64(token)}"`;
+}
+
+function getHttpOptions(hostname: string, endpoint: string, method: 'GET' | 'POST', dataLength: number, authorization: string, proxyAgent: typeof HttpsProxyAgent | null): https.RequestOptions {
+    return {
+        agent: proxyAgent,
+        hostname: hostname,
+        port: 443,
+        path: endpoint,
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': dataLength,
+            'Authorization': authorization
+        },
+    };
+}
+
+function sendHttpRequest(hostname: string, endpoint: string, method: 'GET' | 'POST', authorization: string, data: string | null, certContent?: string): Promise<string> {
+    const dataLength = data ? data.length : 0;
+    let proxyAgent: typeof HttpsProxyAgent | null = null;
+
+    if (tl.getVariable('Agent.proxyUrl') != undefined) {
+        const proxyUrl = getProxyUrl();
+        proxyAgent = new HttpsProxyAgent(proxyUrl);
+    }
+
+    const options = getHttpOptions(hostname, endpoint, method, dataLength, authorization, proxyAgent);
+
+    if (certContent && certContent != "undefined" && certContent != undefined) {
+        try {
+            const validatedCertContent = validatePemCertificate(certContent);
+            options.ca = [validatedCertContent]; // Add certificate to the options
+        } catch (error) {
+            tl.setResult(tl.TaskResult.Failed, `Invalid CA certificate: ${error.message}`);
+            return Promise.reject(error);  // Reject the promise if the certificate is invalid
+        }
+    }
+
+    // Object.entries(options).forEach(([key, value]) => {
+    //     console.log(`Print values :::: ${key}: ${JSON.stringify(value)}`);
+    //   });
+
+    return new Promise((resolve, reject) => {
+        const responseBody: any[] = [];
+
         const req = https.request(options, (res) => {
             res.on('data', (chunk) => responseBody.push(chunk));
             res.on('end', () => resolve(responseBody.join('')));
 
-            // If non-200 code is returned from any call using this method the task extension will fail
-            if(res.statusCode != 200){
-                tl.setResult(tl.TaskResult.Failed, `recieved status code '${res.statusCode}': ${responseBody.join('')}`);
+            if (res.statusCode !== 200) {
+                tl.setResult(tl.TaskResult.Failed, `Received status code '${res.statusCode}': ${responseBody.join('')}`);
             }
-        })
-        
+        });
+
+        req.on('error', (error) => {
+            console.log("error coming from server in response..........");
+            tl.setResult(tl.TaskResult.Failed, `${error}`);
+        });
+
+        if (data) req.write(data);
+        req.end();
+    });
+}
+
+function getProxyUrl(): string {
+    const proxyUrl = tl.getVariable('Agent.proxyUrl');
+    if (tl.getVariable('Agent.proxyUsername') != undefined) {
+        return `${proxyUrl.split("://")[0]}://` + `${tl.getVariable('Agent.proxyUsername')}:${tl.getVariable('Agent.proxyPassword')}@` + `${proxyUrl.split("://")[1]}`;
+    }
+    return proxyUrl;
+}
+
+function sendHttpRequestJWT(hostname: string, endpoint: string, accessToken: string, certContent?: string): Promise<string> {
+    const encodedData = accessToken ? querystring.stringify({ jwt: accessToken }) : '';
+    const dataLength = encodedData.length;
+    const proxyAgent = tl.getVariable('Agent.proxyUrl') ? new HttpsProxyAgent(getProxyUrl()) : null;
+
+    const options = getHttpOptions(hostname, endpoint, 'POST', dataLength, '', proxyAgent);
+    options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+    if (certContent && certContent != "undefined" && certContent != undefined) {
+        try {
+            const validatedCertContent = validatePemCertificate(certContent);
+            options.ca = [validatedCertContent]; // Add certificate to the options
+        } catch (error) {
+            tl.setResult(tl.TaskResult.Failed, `Invalid CA certificate: ${error.message}`);
+            return Promise.reject(error);  // Reject the promise if the certificate is invalid
+        }
+    }
+
+    return new Promise((resolve, reject) => {
+        const responseBody: any[] = [];
+
+        const req = https.request(options, (res) => {
+            res.on('data', (chunk) => responseBody.push(chunk));
+            res.on('end', () => resolve(responseBody.join('')));
+
+            if (res.statusCode !== 200) {
+                tl.setResult(tl.TaskResult.Failed, `Received status code '${res.statusCode}': ${responseBody.join('')}`);
+            }
+        });
+
         req.on('error', (error) => {
             tl.setResult(tl.TaskResult.Failed, `${error}`);
-        })
-        if(data) {
-            req.write(data)
-        }
-        req.end()
-    })
+        });
+
+        if (encodedData) req.write(encodedData);
+        req.end();
+    });
 }
 
 // conjur api functions
-function authenticate(hostname: string, account : string, username : string, apiKey : string, type : AuthnTypes, ignoreSsl : boolean) {
+function authenticate(hostname: string, account : string, username : string, apiKey : string, type : string, hostId: string, serviceId: string, accesstoken: string, certContent?: string) {
     var [hname, api] = removeApi(hostname);
     switch(type) {
-        case AuthnTypes.ApiKey:
+        case "api":
             username = encodeURIComponent(username);
             var endpoint = `${api}/authn/${account}/${username}/authenticate`;
-            return sendHttpRequest(hname, endpoint, 'POST', "", apiKey, ignoreSsl);
+            return sendHttpRequest(hname, endpoint, 'POST', "", apiKey, certContent);
+        case "jwt":
+            var endpoint = `${api}/authn-jwt/${serviceId}/${account}/`;
+            if (hostId) endpoint += `${encodeURIComponent(hostId)}/`
+            endpoint += `authenticate`
+            return sendHttpRequestJWT(hname, endpoint, accesstoken, certContent);
         default:
             tl.setResult(tl.TaskResult.Failed, `Invalid authentication type '${type}'. Valid types are 'apiKey'`)
     }
 }
 
-function getSecretsPath(hostname: string, token : string, ignoreSsl : boolean, secretPath: any[]){
+function getSecretsPath(hostname: string, token : string, secretPath: any[], certContent?: string){
     var [hname, api] = removeApi(hostname);
     var endpoint = `${api}/secrets?variable_ids=${secretPath}`;
     token = getTokenHeader(token);
-    return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl)
+    return sendHttpRequest(hname, endpoint, 'GET', token, null, certContent)
 }
 
-function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, debug_mode: boolean, ignoreSsl : boolean){
+function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: string, account : string, token : string, debug_mode: boolean, certContent?: string){
     var conjurSecret = JSON.parse(jsonData);
     if ('error' in conjurSecret){
         console.log("Batch retrieval failed, falling back to single secret fetch at a time");
         for (let ele in secretPaths){
-            getASecret(hostname, account, token, ele, ignoreSsl)
+            getASecret(hostname, account, token, ele, certContent)
                 .then((data) => {
                     tl.setVariable(secretPaths[ele], data.toString(), true);
                     if(debug_mode == true)
@@ -155,18 +270,19 @@ function setAzureSecrets(jsonData: string, secretPaths: ISecret, hostname: strin
                console.log(`Set conjur secret '${ele}' to azure variable '${secretPaths[ele]}'`);
         }
     }
+    token = ""
 }
 
-function getASecret(hostname: string, account : string, token : string, secretId: string, ignoreSsl : boolean){
+function getASecret(hostname: string, account : string, token : string, secretId: string, certContent?: string){
     var [hname, api] = removeApi(hostname);
     secretId = encodeURIComponent(secretId);
     var endpoint = `${api}/secrets/${account}/variable/${secretId}`;
     token = getTokenHeader(token);
-    return sendHttpRequest(hname, endpoint, 'GET', token, null, ignoreSsl);
+    return sendHttpRequest(hname, endpoint, 'GET', token, null, certContent);
 }
 
-function batchSecretRetrieval(hostname: string, account : string, token : string, secretYml : string,  debug_mode: boolean, ignoreSsl : boolean){
-    var secretsPath = [];
+function batchSecretRetrieval(hostname: string, account : string, token : string, secretYml : string,  debug_mode: boolean, certContent?: string){
+    var secretsPath: string[] = [];
     var secret:ISecret = {}
     
     const readInterface = readline.createInterface({
@@ -174,24 +290,24 @@ function batchSecretRetrieval(hostname: string, account : string, token : string
         output: process.stdout,
         console: false
     });
-    readInterface.on('line', function(line) {
+    readInterface.on('line', function(line: string) {
         if (line.toString().includes(': !var')) {
             createISecret(line, secret);       
         }else{
             tl.setResult(tl.TaskResult.Failed, `Secret path not found in required format at line '${line}'. Format required eg: "SECRET_VAR: !var /secret/path"`);  
         }
-    }).on('close', function(line) {
+    }).on('close', function(line: string) {
         for (let key in secret) {
             secretsPath.push(account + ":variable:" + encodeURIComponent(key));
         }
         if (secretsPath.length > 0){
-            getSecretsPath(hostname, token, ignoreSsl, secretsPath)
-            .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, ignoreSsl))
+            getSecretsPath(hostname, token, secretsPath, certContent)
+            .then((jsonData) => setAzureSecrets(jsonData.toString(), secret, hostname, account, token, debug_mode, certContent))
             .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
         }else{
             return tl.setResult(tl.TaskResult.Failed, 'No data or secret path not found in required format'); 
         }    
-    }).on('error', function(err) {
+    }).on('error', function(err: Error) {
         tl.setResult(tl.TaskResult.Failed, err.message);
     });
 }
@@ -212,78 +328,69 @@ function createISecret(line : string, secret: ISecret):ISecret {
     return secret;
 }
 
-enum AuthnTypes {
-    ApiKey,
-    AzureManagedIdentity
-}
-
 async function run() {
     try {
         //input from service connector
-        var ep = tl.getInput('ConjurService', true);
+        var authnType = tl.getInput('authntype', false);
         var debug_mode: boolean; 
-        var ignoreSsl: boolean; 
-        var hostname = tl.getEndpointUrlRequired(ep);
-        var account  = tl.getEndpointDataParameter(ep, 'conjuraccount', true);
-        var username = tl.getEndpointDataParameter(ep, 'conjurusername', true);
-        var apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', true);
+        var ep;
+        var connectedServiceName;
+        let accessToken;  
+        let serviceId: string = '';
+        let hostId: string = '';
+        let username: string = '';
+        let apiKey: string = '';
+        let certContent: string = '';
+
+        if (authnType == "jwt"){
+            ep = tl.getInput('ConjurJWTService', true);  
+            connectedServiceName =  tl.getInput('serviceNameAzureRM', false);
+            accessToken = await getFederatedWorkloadIdentityAccessToken(connectedServiceName);
+            serviceId = tl.getEndpointDataParameter(ep, 'conjurserviceid', false);
+            hostId = tl.getEndpointDataParameter(ep, 'conjurhostid', true);
+        } else {
+            authnType ="api"
+            ep = tl.getInput('ConjurService', true);
+            username = tl.getEndpointDataParameter(ep, 'conjurusername', false) || '';
+            apiKey = tl.getEndpointDataParameter(ep, 'conjurapikey', false);
+        }
+        var hostname = tl.getEndpointUrlRequired(ep) || '';
+        var account  = tl.getEndpointDataParameter(ep, 'conjuraccount', false) || '';
+       
         if(tl.getVariable('System.Debug') == 'true')
             debug_mode = true;
         else
             debug_mode = false;
 
-        if(tl.getEndpointDataParameter(ep, 'ignoressl', true) == 'true')
-           ignoreSsl = true;
-        else
-           ignoreSsl = false;   
-    
-        var secretYml = tl.getInput('secretsyml', false);
-        var clientId = tl.getInput('azureclientid', false);    
-        var authnType = AuthnTypes.ApiKey
-
-        // Set defaults
-        if (!hostname) {
-            hostname = "";
-        }
-        if (!account) {
-            account = "";
-        }
-        if (!username) {
-            username = "";
-        }
-        if (!apiKey) {
-            apiKey = "";
-        }
-        if (!secretYml) {
-            secretYml = "./secrets.yml";
-        }else{
-            var path = require('path');
-            if (!file_type_supported.includes(path.extname(secretYml).toLowerCase())){
-                return tl.setResult(tl.TaskResult.Failed, "Only .yml, .yaml extension file supported");
-            } 
-        }
-        if (!clientId) {
-            clientId = "";
-            // client id is not provided assume api key authentication
-            if (apiKey == "") {
-                var error_message = "Conjur API Key is required since Azure Client ID is not provided";
-                console.error(error_message);
-                tl.setResult(tl.TaskResult.Failed, error_message);
+        try{
+            certContent = tl.getEndpointDataParameter(ep, 'cacert', true);
+            console.log("certContent from :: ", certContent == "undefined")
+            if (certContent && certContent != "undefined" && certContent != undefined){
+                const validCertContent = await getValidCertificate(certContent);
             }
-        } else {
-            // If client id is provided we are default to azure authentication
-            authnType = AuthnTypes.AzureManagedIdentity
-            console.log("Since Client ID was provided then defaulting to azure authentication. Api key will not be used")
+        } catch (err) {
+            tl.setResult(tl.TaskResult.Failed, err.message);
         }
 
+        var path = require('path');
+        let secretYml: string = tl.getInput('secretsyml', false) || './secrets.yml';
+        if (!file_type_supported.includes(path.extname(secretYml).toLowerCase())){
+            return tl.setResult(tl.TaskResult.Failed, "Only .yml, .yaml extension file supported");
+        } 
         // sanitize
         hostname = trimRight(hostname, '/');
         hostname = removeHttps(hostname);
 
         // fetch the secrets
-        authenticate(hostname, account, username, apiKey, authnType, true)
-        .then((data) => batchSecretRetrieval(hostname, account, data.toString(), secretYml, debug_mode, ignoreSsl))
-        .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
+        if (authnType == "api"){
+            authenticate(hostname, account, username, apiKey, authnType, "", "", "", certContent)
+            .then((data) => batchSecretRetrieval(hostname, account, data.toString(), secretYml, debug_mode, certContent))
+            .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
+        } else {
+            authenticate(hostname, account, "", "", authnType, hostId, serviceId, accessToken, certContent)
+            .then((data) => batchSecretRetrieval(hostname, account, data.toString(), secretYml, debug_mode, certContent))
+            .catch((err) => tl.setResult(tl.TaskResult.Failed, err.message))
+        }
     }
     catch (err) {
         tl.setResult(tl.TaskResult.Failed, err.message);

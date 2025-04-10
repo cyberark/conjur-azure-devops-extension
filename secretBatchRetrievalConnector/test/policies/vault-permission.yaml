@@ -1,0 +1,4 @@
+# conjur policy load -f vault-permission.yaml -b data/vault/IF_Safe_Pavan
+- !grant
+  role: !group vault/IF_Safe_Pavan/delegation/consumers
+  member: !group /data/azure-apps

@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
       "id": "cyberark-conjur-credentials",
-      "version": "1.2.4",
+      "version": "1.3.0",
       "name": "CyberArk Conjur Service Connector",
       "description": "Service connector that allows to pull secrets at runtime in a secured way from CyberArk’s Conjur Secret Manager",
       "publisher": "CyberArk",
@@ -25,7 +25,7 @@
       "contributions": [
         {
           "id": "service-endpoint-conjur",
-          "description": "Service endpoint type for Cyberark Conjur connections",
+          "description": "Service endpoint type for Cyberark Conjur API connections",
           "type": "ms.vss-endpoint.service-endpoint-type",
           "targets": [ "ms.vss-endpoint.endpoint-types" ],
 
@@ -49,7 +49,8 @@
                 "inputMode": "passwordbox",
                 "validation": {
                   "isRequired": true,
-                  "dataType": "string"
+                  "dataType": "string",
+                  "maxLength": 150
                 }
               },
               {
@@ -60,7 +61,8 @@
                 "inputMode": "passwordbox",
                 "validation": {
                   "isRequired": true,
-                  "dataType": "string"
+                  "dataType": "string",
+                  "maxLength": 150
                 }
               },
               {
@@ -71,6 +73,19 @@
                 "isConfidential": true,
                 "validation": {
                   "isRequired": true,
+                  "dataType": "string",
+                  "maxLength": 150
+                }
+              },
+              {
+                "id": "cacert",
+                "name": "Conjur CA Cert",
+                "description": "Conjur server CA Certificate Content",
+                "inputMode": "textarea",
+                "default": "false",
+                "isConfidential": false,
+                "validation": {
+                  "isRequired": false,
                   "dataType": "string"
                 }
               },
@@ -79,6 +94,75 @@
                 "name": "Ignore SSL Error",
                 "description": "Check to ignore SSL errors when making HTTPS connection",
                 "inputMode": "CheckBox",
+                "default": "false",
+                "isConfidential": false,
+                "validation": {
+                  "isRequired": false,
+                  "dataType": "string"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "service-endpoint-conjur-jwt",
+          "description": "Service endpoint type for Cyberark Conjur JWT connections",
+          "type": "ms.vss-endpoint.service-endpoint-type",
+          "targets": [ "ms.vss-endpoint.endpoint-types" ],
+
+          "properties": {
+            "name": "ConjurJwtSC",
+            "displayName": "Conjur JWT Batch Secrets Server Connection",
+            "url": {
+              "displayName": "URL to Conjur Endpoint"
+            },
+            "authenticationSchemes": [
+              {
+                "type": "ms.vss-endpoint.endpoint-auth-scheme-none"
+              }
+            ],  
+            "inputDescriptors": [
+              {
+                "id": "conjuraccount",
+                "name": "Conjur Account Name",
+                "description": "Account Name of the Conjur Instance",
+                "isConfidential": false,
+                "inputMode": "passwordbox",
+                "validation": {
+                  "isRequired": true,
+                  "dataType": "string",
+                  "maxLength": 150
+                }
+              },
+              {
+                "id": "conjurserviceid",
+                "name": "Service Id",
+                "description": "Service Id to use to connect to Conjur",
+                "isConfidential": false,
+                "inputMode": "passwordbox",
+                "validation": {
+                  "isRequired": true,
+                  "dataType": "string",
+                  "maxLength": 100
+                }
+              },
+              {
+                "id": "conjurhostid",
+                "name": "Host Id",
+                "description": "Host Id to use to connect to Conjur required if JWt Authenticator is defined without a token-app-property variable",
+                "inputMode": "passwordbox",
+                "isConfidential": false,
+                "validation": {
+                  "isRequired": false,
+                  "dataType": "string",
+                  "maxLength": 150
+                }
+              },
+              {
+                "id": "cacert",
+                "name": "Conjur CA Cert",
+                "description": "Conjur server CA Certificate Content",
+                "inputMode": "textarea",
                 "default": "false",
                 "isConfidential": false,
                 "validation": {
