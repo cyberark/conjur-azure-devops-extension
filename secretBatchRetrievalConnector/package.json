@@ -22,7 +22,6 @@
     "@types/node": "^18.19.80",
     "@types/node-fetch": "^2.6.12",
     "@types/q": "^1.5.5",
-    "sync-request": "^6.1.0",
     "typescript-coverage-report": "^0.8.0"
   }
 }
