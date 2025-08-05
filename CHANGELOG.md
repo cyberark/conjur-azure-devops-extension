@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ## [1.3.1]
 - Addressed security vulnerability CVE-2025-7783 by upgrading form-data to a version greater than 2.5.4.
+- Telemetry changes
 
 ### Added
 ## [1.3.0]
