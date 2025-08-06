@@ -54,8 +54,21 @@ const querystring = __importStar(require("querystring"));
 const forge = __importStar(require("node-forge"));
 let integrationName = "Azure DevOps Extension";
 let integrationType = "cybr-secretsmanager";
+let integrationVersion = "1.3.1";
 let vendorName = "Microsoft";
 let vendorVersion = null;
+// Telemetry header changes 
+function buildTelemetryHeader() {
+    let telemetryHeader = '';
+    telemetryHeader += "in=" + integrationName;
+    telemetryHeader += "&iv=" + integrationVersion;
+    telemetryHeader += "&it=" + integrationType;
+    telemetryHeader += "&vn=" + vendorName;
+    if (vendorVersion != null) {
+        telemetryHeader += "&vv=" + vendorVersion;
+    }
+    return Buffer.from(telemetryHeader).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 // utility functions
 function trimRight(input, trimStr) {
     if (input === null || input === void 0 ? void 0 : input.endsWith(trimStr)) {
@@ -157,7 +170,8 @@ function getHttpOptions(hostname, endpoint, method, dataLength, authorization, p
         headers: {
             'Content-Type': 'application/json',
             'Content-Length': dataLength,
-            'Authorization': authorization
+            'Authorization': authorization,
+            'x-cybr-telemetry': buildTelemetryHeader()
         },
     };
 }

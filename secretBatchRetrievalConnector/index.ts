@@ -11,8 +11,23 @@ import * as forge from 'node-forge';
 
 let integrationName:string = "Azure DevOps Extension";
 let integrationType:string = "cybr-secretsmanager";
+let integrationVersion:string = "1.3.1";
 let vendorName:string = "Microsoft";
 let vendorVersion:string | null = null;
+
+// Telemetry header changes 
+function buildTelemetryHeader() {
+    let telemetryHeader:string | null = '';
+    telemetryHeader += "in="+integrationName;
+    telemetryHeader += "&iv="+integrationVersion;
+    telemetryHeader += "&it="+integrationType;
+
+    telemetryHeader += "&vn="+vendorName;
+    if (vendorVersion != null) {
+        telemetryHeader += "&vv="+vendorVersion;
+    }
+    return Buffer.from(telemetryHeader).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); 
+}
 
 // utility functions
 function trimRight(input : string, trimStr : string) : string{
@@ -121,7 +136,8 @@ function getHttpOptions(hostname: string, endpoint: string, method: 'GET' | 'POS
         headers: {
             'Content-Type': 'application/json',
             'Content-Length': dataLength,
-            'Authorization': authorization
+            'Authorization': authorization,
+            'x-cybr-telemetry': buildTelemetryHeader()
         },
     };
 }
@@ -146,7 +162,6 @@ function sendHttpRequest(hostname: string, endpoint: string, method: 'GET' | 'PO
             return Promise.reject(error);  // Reject the promise if the certificate is invalid
         }
     }
-
     // Object.entries(options).forEach(([key, value]) => {
     //     console.log(`Print values :::: ${key}: ${JSON.stringify(value)}`);
     //   });
