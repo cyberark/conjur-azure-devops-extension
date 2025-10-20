@@ -16,6 +16,8 @@ if (params.MODE == "PROMOTE") {
     // Any publishing of targetVersion artifacts occur here
     // Anything added to assetDirectory will be attached to the Github Release
   }
+  // here we copy the release from github enterprise to github.com
+  release.copyEnterpriseRelease(params.VERSION_TO_PROMOTE)
   return
 }
 
