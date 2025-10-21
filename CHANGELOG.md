@@ -47,3 +47,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 ## [1.0.0]
 - Extension now supports to Fetch Bulk secrets from Conjur Vault
+
+[1.3.3]: https://github.com/cyberark/conjur-azure-devops-extension/releases/tag/v1.3.3
